@@ -2,10 +2,6 @@
 
 Self-hosted dashboard with a shared web-based admin editor, per-tab theming, and embedded icon support.
 
-This repo now ships with a starter configuration:
-- `Default` tab (pre-filled example groups/buttons + colors)
-- `Extra tab` (empty)
-
 <img width="1491" height="951" alt="Screenshot from 2026-02-23 00-24-16" src="https://github.com/user-attachments/assets/9ce32591-78b1-444f-ae69-bf5ebdde0358" />
 
 <img width="1493" height="953" alt="Screenshot from 2026-02-23 00-25-21" src="https://github.com/user-attachments/assets/d4a06fd5-36af-40ac-90ef-125bdcdf3f38" />
