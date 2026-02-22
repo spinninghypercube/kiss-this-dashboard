@@ -18,7 +18,12 @@ Important:
 - If you import an older users file with a legacy default account, the admin UI can still force a password change before edits.
 - Reverse proxy setup is intentionally not included in this repo. Bring your own if you need HTTPS/public access.
 
-## Quick Start (Docker Compose)
+Choose one deployment method below (Docker Compose or systemd). Docker Compose is optional.
+
+## Quick Start (Docker Compose, Optional)
+
+Use this if you want a one-command Docker deployment.
+
 
 Requirements:
 - Docker + Docker Compose plugin (`docker compose`)
@@ -39,6 +44,9 @@ Notes:
 - Persistent data is stored in the `dashboard_data` Docker volume.
 
 ## Quick Start (Debian/Ubuntu, systemd)
+
+Use this if you do not want Docker.
+
 
 Requirements:
 - `python3`, `curl`, `systemd`
