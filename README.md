@@ -102,10 +102,10 @@ Recommended upgrade flow:
 ## Releases / Versioning
 
 - `CHANGELOG.md` is included for short release notes
-- `ops/release.sh` helps create annotated git tags (maintainer workflow)
+- `maintainer/release.sh` helps create annotated git tags (maintainer workflow)
 
 Example:
-- `bash ops/release.sh 1.2.0`
+- `bash maintainer/release.sh 1.2.0`
 - `git push origin main --tags`
 
 ## Project Layout
@@ -117,4 +117,5 @@ Example:
 - `admin.js` admin editor UI
 - `backend/dashboard_api.py` API + auth + config storage + static file serving fallback
 - `dashboard-default-config.json` starter config used on first run and for reset-to-starter
-- `ops/` helper scripts and systemd unit
+- `ops/` user-facing install/backup/restore/smoke-test scripts + systemd unit template
+- `maintainer/` maintainer-only release tooling
