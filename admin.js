@@ -31,7 +31,7 @@
   const BUILT_IN_THEME_PRESETS = [
     {
       id: "builtin-midnight-slate",
-      name: "Default Theme",
+      name: "Midnight Slate",
       theme: {
         backgroundColor: "#0f172a",
         groupBackgroundColor: "#111827",
@@ -611,15 +611,60 @@
     state.item.style.transform = `translate(${Math.round(nextLeft)}px, ${Math.round(nextTop)}px)`;
   }
 
-  function chooseInsertBeforeWithHysteresis(position, center, size, delta) {
-    const hysteresis = Math.max(6, Math.min(18, Number(size || 0) * 0.14));
-    if (delta > 0) {
-      return position < center - hysteresis;
+  function getAdjacentSortableSibling(node, itemSelector, direction) {
+    let cursor = direction < 0 ? node.previousElementSibling : node.nextElementSibling;
+    while (cursor) {
+      if (
+        typeof cursor.matches === "function" &&
+        cursor.matches(itemSelector) &&
+        !cursor.classList.contains("sortable-placeholder")
+      ) {
+        return cursor;
+      }
+      cursor = direction < 0 ? cursor.previousElementSibling : cursor.nextElementSibling;
     }
-    if (delta < 0) {
-      return position < center + hysteresis;
+    return null;
+  }
+
+  function comparePointerToSortableItem(axis, clientX, clientY, rect) {
+    const xCenter = rect.left + rect.width / 2;
+    const yCenter = rect.top + rect.height / 2;
+    const xDead = Math.max(8, Math.min(20, rect.width * 0.16));
+    const yDead = Math.max(8, Math.min(20, rect.height * 0.18));
+
+    if (axis === "vertical") {
+      if (clientY < yCenter - yDead) {
+        return -1;
+      }
+      if (clientY > yCenter + yDead) {
+        return 1;
+      }
+      return 0;
     }
-    return position < center;
+
+    if (axis === "horizontal") {
+      if (clientX < xCenter - xDead) {
+        return -1;
+      }
+      if (clientX > xCenter + xDead) {
+        return 1;
+      }
+      return 0;
+    }
+
+    if (clientY < rect.top + yDead) {
+      return -1;
+    }
+    if (clientY > rect.bottom - yDead) {
+      return 1;
+    }
+    if (clientX < xCenter - xDead) {
+      return -1;
+    }
+    if (clientX > xCenter + xDead) {
+      return 1;
+    }
+    return 0;
   }
 
   function repositionPointerSortPlaceholder(state, clientX, clientY) {
@@ -635,46 +680,7 @@
     const deltaY = clientY - previousY;
     state.lastRepositionX = clientX;
     state.lastRepositionY = clientY;
-    const targetNode = document.elementFromPoint(clientX, clientY);
-    let targetItem =
-      targetNode && typeof targetNode.closest === "function" ? targetNode.closest(itemSelector) : null;
-
-    if (
-      !targetItem ||
-      targetItem === placeholder ||
-      targetItem === state.item ||
-      !container.contains(targetItem) ||
-      targetItem.classList.contains("sortable-placeholder")
-    ) {
-      targetItem = null;
-    }
-
-    if (targetItem) {
-      const rect = targetItem.getBoundingClientRect();
-      const centerX = rect.left + rect.width / 2;
-      const centerY = rect.top + rect.height / 2;
-      let insertBefore = false;
-
-      if (options.axis === "vertical") {
-        insertBefore = chooseInsertBeforeWithHysteresis(clientY, centerY, rect.height, deltaY);
-      } else if (options.axis === "horizontal") {
-        insertBefore = chooseInsertBeforeWithHysteresis(clientX, centerX, rect.width, deltaX);
-      } else {
-        const yOffset = clientY - centerY;
-        if (Math.abs(yOffset) > rect.height * 0.28) {
-          insertBefore = chooseInsertBeforeWithHysteresis(clientY, centerY, rect.height, deltaY);
-        } else {
-          insertBefore = chooseInsertBeforeWithHysteresis(clientX, centerX, rect.width, deltaX);
-        }
-      }
-
-      const referenceNode = insertBefore ? targetItem : targetItem.nextElementSibling;
-      if (referenceNode !== placeholder && placeholder.nextElementSibling !== referenceNode) {
-        container.insertBefore(placeholder, referenceNode);
-      }
-      return;
-    }
-
+    const axis = options.axis || "vertical";
     const containerRect = container.getBoundingClientRect();
     const withinBounds =
       clientX >= containerRect.left - 24 &&
@@ -693,7 +699,7 @@
       return;
     }
 
-    if (options.axis === "vertical") {
+    if (axis === "vertical") {
       const firstRect = firstItem.getBoundingClientRect();
       if (clientY < firstRect.top + firstRect.height / 2) {
         if (placeholder !== firstItem.previousElementSibling) {
@@ -703,9 +709,82 @@
       }
     }
 
+    if (axis === "horizontal") {
+      const firstRect = firstItem.getBoundingClientRect();
+      if (clientX < firstRect.left + firstRect.width / 2) {
+        if (placeholder !== firstItem.previousElementSibling) {
+          container.insertBefore(placeholder, firstItem);
+        }
+        return;
+      }
+    }
+
     const endReference = getSortableEndReference(container, options);
-    if (placeholder.nextElementSibling !== endReference) {
+    if (axis !== "horizontal" && axis !== "vertical" && clientY > containerRect.bottom - 18) {
+      if (placeholder.nextElementSibling !== endReference) {
+        container.insertBefore(placeholder, endReference);
+      }
+      return;
+    }
+
+    if (axis === "vertical" && clientY > containerRect.bottom - 18) {
       container.insertBefore(placeholder, endReference);
+      return;
+    }
+
+    if (axis === "horizontal" && clientX > containerRect.right - 18) {
+      container.insertBefore(placeholder, endReference);
+      return;
+    }
+
+    const majorDelta =
+      axis === "vertical"
+        ? deltaY
+        : axis === "horizontal"
+          ? deltaX
+          : Math.abs(deltaY) >= Math.abs(deltaX)
+            ? deltaY
+            : deltaX;
+    const checkForwardFirst = majorDelta >= 0;
+
+    for (let step = 0; step < 24; step += 1) {
+      const prevItem = getAdjacentSortableSibling(placeholder, itemSelector, -1);
+      const nextItem = getAdjacentSortableSibling(placeholder, itemSelector, 1);
+      let moved = false;
+
+      const tryMoveForward = () => {
+        if (!nextItem) {
+          return false;
+        }
+        const cmp = comparePointerToSortableItem(axis, clientX, clientY, nextItem.getBoundingClientRect());
+        if (cmp > 0) {
+          container.insertBefore(placeholder, nextItem.nextElementSibling);
+          return true;
+        }
+        return false;
+      };
+
+      const tryMoveBackward = () => {
+        if (!prevItem) {
+          return false;
+        }
+        const cmp = comparePointerToSortableItem(axis, clientX, clientY, prevItem.getBoundingClientRect());
+        if (cmp < 0) {
+          container.insertBefore(placeholder, prevItem);
+          return true;
+        }
+        return false;
+      };
+
+      if (checkForwardFirst) {
+        moved = tryMoveForward() || tryMoveBackward();
+      } else {
+        moved = tryMoveBackward() || tryMoveForward();
+      }
+
+      if (!moved) {
+        break;
+      }
     }
   }
 
@@ -1435,7 +1514,7 @@
 
     if (customPresets.length) {
       const savedGroup = document.createElement("optgroup");
-      savedGroup.label = "Saved for This Tab";
+      savedGroup.label = "Saved themes";
       customPresets.forEach((preset) => {
         const option = document.createElement("option");
         option.value = `saved:${preset.id}`;
@@ -2208,7 +2287,7 @@
       col.setAttribute("data-button-id", buttonEntry.id);
 
       const card = document.createElement("div");
-      card.className = "entry-admin-card with-side-actions";
+      card.className = "entry-admin-card";
 
       const preview = document.createElement("button");
       preview.type = "button";
@@ -2255,18 +2334,7 @@
       preview.appendChild(label);
       preview.appendChild(editHint);
 
-      const actions = document.createElement("div");
-      actions.className = "mini-actions compact-row entry-side-actions";
-
-      const deleteBtn = document.createElement("button");
-      deleteBtn.type = "button";
-      setIconActionButton(deleteBtn, "is-danger is-light", "🗑", "Delete button");
-      deleteBtn.addEventListener("click", () => openDeleteButtonModal(dashboard, group, buttonEntry));
-
-      actions.appendChild(deleteBtn);
-
       card.appendChild(preview);
-      card.appendChild(actions);
       col.appendChild(card);
       wrapper.appendChild(col);
     });
