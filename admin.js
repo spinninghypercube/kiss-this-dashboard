@@ -594,7 +594,7 @@
 
   function createButtonSortPlaceholder(itemEl, rect) {
     const slot = document.createElement("div");
-    slot.className = `${itemEl && itemEl.className ? itemEl.className : "column"} sortable-placeholder sortable-placeholder-grid-line`;
+    slot.className = `${itemEl && itemEl.className ? itemEl.className : "column"} sortable-placeholder sortable-placeholder-grid-line sortable-placeholder-grid-preserve-slot`;
     slot.style.minHeight = `${Math.ceil(rect.height)}px`;
     slot.style.height = `${Math.ceil(rect.height)}px`;
     slot.style.margin = "0";
@@ -1430,6 +1430,15 @@
               return;
             }
             state.gridOriginSlotExited = true;
+            if (
+              state.placeholder &&
+              state.placeholder.classList &&
+              state.placeholder.classList.contains("sortable-placeholder-grid-preserve-slot")
+            ) {
+              state.placeholder.classList.remove("sortable-placeholder-grid-preserve-slot");
+              state.placeholder.style.minHeight = "0";
+              state.placeholder.style.height = "0";
+            }
           }
           repositionPointerSortPlaceholder(state, moveEvent.clientX, moveEvent.clientY);
         };
