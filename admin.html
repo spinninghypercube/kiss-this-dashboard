@@ -232,6 +232,44 @@
       min-width: 3.2rem;
     }
 
+    .mode-tabs li.tab-sort-item > a {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.4rem;
+      max-width: 100%;
+    }
+
+    .mode-tabs .tab-link-label {
+      min-width: 0;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+
+    .drag-handle {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      cursor: grab;
+      user-select: none;
+      touch-action: none;
+      color: inherit;
+      opacity: 0.85;
+    }
+
+    .drag-handle:active {
+      cursor: grabbing;
+    }
+
+    .tab-drag-handle {
+      margin-left: 0.05rem;
+      min-width: 1.1rem;
+      font-size: 0.95rem;
+      line-height: 1;
+      letter-spacing: -0.08em;
+      opacity: 0.82;
+    }
+
     .mode-tabs .nav-action-tab {
       margin-left: auto;
     }
@@ -419,6 +457,51 @@
       flex-wrap: wrap;
     }
 
+    .mini-actions .drag-handle {
+      width: 2.25rem;
+      min-width: 2.25rem;
+      height: 2.25rem;
+      border-radius: 0.45rem;
+      background: rgba(148, 163, 184, 0.09);
+      border: 1px solid rgba(148, 163, 184, 0.14);
+      color: var(--text-soft);
+      font-size: 1rem;
+      line-height: 1;
+      letter-spacing: -0.08em;
+    }
+
+    .mini-actions .drag-handle:hover {
+      color: #ffffff;
+      background: rgba(148, 163, 184, 0.16);
+      border-color: rgba(148, 163, 184, 0.26);
+    }
+
+    .sortable-placeholder {
+      border: 1px dashed rgba(147, 197, 253, 0.55) !important;
+      background: rgba(30, 41, 59, 0.28) !important;
+      box-shadow: inset 0 0 0 1px rgba(147, 197, 253, 0.22);
+      border-radius: 0.65rem;
+      min-height: 1.5rem;
+      opacity: 1;
+    }
+
+    .sortable-placeholder > * {
+      display: none !important;
+    }
+
+    .sortable-floating {
+      pointer-events: none !important;
+      z-index: 9999 !important;
+      opacity: 0.94;
+      transform-origin: top left;
+      box-shadow: 0 12px 28px rgba(2, 6, 23, 0.35);
+    }
+
+    body.sorting-active {
+      user-select: none;
+      cursor: grabbing;
+    }
+
     .icon-action {
       width: 2rem;
       min-width: 2rem;
@@ -589,6 +672,39 @@
       border-radius: 0.45rem;
       text-transform: lowercase;
       font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, "Liberation Mono", monospace;
+    }
+
+    .theme-preset-editor-card {
+      padding: 0.85rem;
+      border-radius: 0.85rem;
+      border: 1px solid rgba(148, 163, 184, 0.2);
+      background: rgba(15, 23, 42, 0.28);
+      display: grid;
+      gap: 0.65rem;
+    }
+
+    .theme-preset-toolbar {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.45rem;
+      align-items: stretch;
+    }
+
+    .theme-preset-toolbar .control.is-expanded {
+      flex: 1 1 15rem;
+      min-width: 12rem;
+    }
+
+    .theme-preset-save-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.45rem;
+      align-items: center;
+    }
+
+    .theme-preset-save-row .input {
+      flex: 1 1 14rem;
+      min-width: 12rem;
     }
 
     .entry-admin-card {
@@ -1021,6 +1137,17 @@
         width: auto;
       }
 
+      .theme-preset-toolbar,
+      .theme-preset-save-row {
+        flex-direction: column;
+        align-items: stretch;
+      }
+
+      .theme-preset-toolbar .button,
+      .theme-preset-save-row .button {
+        width: 100%;
+      }
+
       .admin-topbar {
         align-items: flex-start;
       }
@@ -1123,6 +1250,7 @@
               <h2 class="title is-5">Tab Settings</h2>
               <div class="settings-actions">
                 <button id="liveColorEditorToggleBtn" class="button is-link is-light is-small" type="button">Live Color Editor</button>
+                <button id="resetStarterConfigBtn" class="button is-warning is-light is-small" type="button">Reset to Starter</button>
                 <button id="deleteDashboardBtn" class="button is-danger is-light is-small delete-dashboard-btn" type="button">Delete this tab</button>
               </div>
             </div>
@@ -1144,6 +1272,41 @@
                 <button id="resetThemeColorsBtn" class="button is-link is-light is-small" type="button">Reset Colors</button>
               </div>
               <div class="columns is-multiline">
+              <div class="column is-12">
+                <div class="field mb-0">
+                  <label class="label" for="themePresetSelect">Theme Presets</label>
+                  <div class="theme-preset-editor-card">
+                    <div class="theme-preset-toolbar">
+                      <p class="control is-expanded">
+                        <span class="select is-fullwidth">
+                          <select id="themePresetSelect">
+                            <option value="">Select a theme preset...</option>
+                          </select>
+                        </span>
+                      </p>
+                      <p class="control">
+                        <button id="themePresetPreviewBtn" class="button is-light" type="button">Preview</button>
+                      </p>
+                      <p class="control">
+                        <button id="themePresetApplyBtn" class="button is-link is-light" type="button">Load</button>
+                      </p>
+                    </div>
+                    <div class="theme-preset-save-row">
+                      <input
+                        id="themePresetNameInput"
+                        class="input"
+                        type="text"
+                        maxlength="60"
+                        placeholder="Save current theme as preset"
+                      />
+                      <button id="themePresetSaveBtn" class="button is-link" type="button">Save Current Theme</button>
+                    </div>
+                    <p class="help mb-0">
+                      Built-in presets are available for every tab. Saved presets are stored with this tab and can be reloaded later.
+                    </p>
+                  </div>
+                </div>
+              </div>
               <div class="column is-12">
                 <div class="field mb-0">
                   <label class="label" for="buttonColorModeSelect">Button Colors</label>

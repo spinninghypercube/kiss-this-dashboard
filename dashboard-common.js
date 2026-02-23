@@ -405,9 +405,43 @@
     };
   }
 
+  function normalizeThemePresetTheme(theme) {
+    const defaults = getDefaultButtonColorOptions();
+    return {
+      backgroundColor: normalizeHexColor(theme && theme.backgroundColor),
+      groupBackgroundColor: normalizeHexColor(theme && theme.groupBackgroundColor),
+      textColor: normalizeHexColor(theme && theme.textColor),
+      buttonTextColor: normalizeHexColor(theme && theme.buttonTextColor),
+      tabColor: normalizeHexColor(theme && theme.tabColor),
+      activeTabColor: normalizeHexColor(theme && theme.activeTabColor),
+      tabTextColor: normalizeHexColor(theme && theme.tabTextColor),
+      activeTabTextColor: normalizeHexColor(theme && theme.activeTabTextColor),
+      buttonColorMode: normalizeButtonColorMode(theme && theme.buttonColorMode),
+      buttonCycleHueStep: clampNumber(theme && theme.buttonCycleHueStep, 1, 180, defaults.buttonCycleHueStep),
+      buttonCycleSaturation: clampNumber(theme && theme.buttonCycleSaturation, 0, 100, defaults.buttonCycleSaturation),
+      buttonCycleLightness: clampNumber(theme && theme.buttonCycleLightness, 0, 100, defaults.buttonCycleLightness),
+      buttonSolidColor: normalizeHexColor(theme && theme.buttonSolidColor) || defaults.buttonSolidColor
+    };
+  }
+
+  function normalizeThemePreset(preset, fallbackIndex = 1) {
+    const name =
+      preset && typeof preset.name === "string" && preset.name.trim()
+        ? preset.name.trim()
+        : `Theme ${fallbackIndex}`;
+    return {
+      id: preset && preset.id ? String(preset.id) : createId("theme"),
+      name,
+      theme: normalizeThemePresetTheme(preset && preset.theme)
+    };
+  }
+
   function normalizeDashboard(dashboard, migrationTabs, fallbackLabel) {
     const groups = Array.isArray(dashboard && dashboard.groups)
       ? dashboard.groups.map((group) => normalizeGroup(group, migrationTabs))
+      : [];
+    const themePresets = Array.isArray(dashboard && dashboard.themePresets)
+      ? dashboard.themePresets.map((preset, index) => normalizeThemePreset(preset, index + 1))
       : [];
 
     const id = dashboard && dashboard.id ? makeSafeTabId(dashboard.id) : createId("dashboard");
@@ -456,6 +490,7 @@
         DEFAULT_BUTTON_COLOR_CYCLE_LIGHTNESS
       ),
       buttonSolidColor: normalizeHexColor(dashboard && dashboard.buttonSolidColor) || DEFAULT_BUTTON_COLOR_SOLID,
+      themePresets,
       groups
     };
   }
@@ -491,6 +526,7 @@
             buttonCycleSaturation: dashboard.buttonCycleSaturation,
             buttonCycleLightness: dashboard.buttonCycleLightness,
             buttonSolidColor: dashboard.buttonSolidColor,
+            themePresets: dashboard.themePresets,
             groups: dashboard.groups
           };
         });

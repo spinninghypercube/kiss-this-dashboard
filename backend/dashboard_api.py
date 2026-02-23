@@ -729,12 +729,57 @@ def normalize_group(group, legacy_tabs):
     }
 
 
+def normalize_theme_preset_theme(theme):
+    if not isinstance(theme, dict):
+        theme = {}
+
+    return {
+        "backgroundColor": normalize_hex_color(theme.get("backgroundColor")),
+        "groupBackgroundColor": normalize_hex_color(theme.get("groupBackgroundColor")),
+        "textColor": normalize_hex_color(theme.get("textColor")),
+        "buttonTextColor": normalize_hex_color(theme.get("buttonTextColor")),
+        "tabColor": normalize_hex_color(theme.get("tabColor")),
+        "activeTabColor": normalize_hex_color(theme.get("activeTabColor")),
+        "tabTextColor": normalize_hex_color(theme.get("tabTextColor")),
+        "activeTabTextColor": normalize_hex_color(theme.get("activeTabTextColor")),
+        "buttonColorMode": normalize_button_color_mode(theme.get("buttonColorMode")),
+        "buttonCycleHueStep": clamp_int(
+            theme.get("buttonCycleHueStep"), 1, 180, DEFAULT_BUTTON_CYCLE_HUE_STEP
+        ),
+        "buttonCycleSaturation": clamp_int(
+            theme.get("buttonCycleSaturation"), 0, 100, DEFAULT_BUTTON_CYCLE_SATURATION
+        ),
+        "buttonCycleLightness": clamp_int(
+            theme.get("buttonCycleLightness"), 0, 100, DEFAULT_BUTTON_CYCLE_LIGHTNESS
+        ),
+        "buttonSolidColor": normalize_hex_color(theme.get("buttonSolidColor")) or DEFAULT_BUTTON_SOLID_COLOR,
+    }
+
+
+def normalize_theme_preset(preset, fallback_index):
+    if not isinstance(preset, dict):
+        preset = {}
+
+    name = str(preset.get("name") or "").strip() or f"Theme {fallback_index}"
+    return {
+        "id": str(preset.get("id") or f"theme-{secrets.token_hex(4)}"),
+        "name": name,
+        "theme": normalize_theme_preset_theme(preset.get("theme")),
+    }
+
+
 def normalize_dashboard(dashboard, legacy_tabs, fallback_label):
     if not isinstance(dashboard, dict):
         dashboard = {}
 
     source_groups = dashboard.get("groups") if isinstance(dashboard.get("groups"), list) else []
     groups = [normalize_group(group, legacy_tabs) for group in source_groups]
+    source_theme_presets = (
+        dashboard.get("themePresets") if isinstance(dashboard.get("themePresets"), list) else []
+    )
+    theme_presets = [
+        normalize_theme_preset(preset, index + 1) for index, preset in enumerate(source_theme_presets)
+    ]
 
     dashboard_id = make_safe_tab_id(dashboard.get("id") or fallback_label or "dashboard")
     if dashboard_id == "dashboard":
@@ -767,6 +812,7 @@ def normalize_dashboard(dashboard, legacy_tabs, fallback_label):
         ),
         "buttonSolidColor": normalize_hex_color(dashboard.get("buttonSolidColor"))
         or DEFAULT_BUTTON_SOLID_COLOR,
+        "themePresets": theme_presets,
         "groups": groups,
     }
 

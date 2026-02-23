@@ -28,6 +28,103 @@
     activeTabTextColor: DEFAULT_ACTIVE_TAB_TEXT_COLOR
   };
   const DEFAULT_BUTTON_COLOR_OPTIONS = DashboardCommon.getDefaultButtonColorOptions();
+  const BUILT_IN_THEME_PRESETS = [
+    {
+      id: "builtin-midnight-slate",
+      name: "Midnight Slate",
+      theme: {
+        backgroundColor: "#0f172a",
+        groupBackgroundColor: "#111827",
+        textColor: "#f8fafc",
+        buttonTextColor: "#0f172a",
+        tabColor: "#1e293b",
+        activeTabColor: "#2563eb",
+        tabTextColor: "#cbd5e1",
+        activeTabTextColor: "#ffffff",
+        buttonColorMode: "cycle-custom",
+        buttonCycleHueStep: 15,
+        buttonCycleSaturation: 70,
+        buttonCycleLightness: 74,
+        buttonSolidColor: "#93c5fd"
+      }
+    },
+    {
+      id: "builtin-paper-ink",
+      name: "Paper & Ink",
+      theme: {
+        backgroundColor: "#f8fafc",
+        groupBackgroundColor: "#e2e8f0",
+        textColor: "#0f172a",
+        buttonTextColor: "#ffffff",
+        tabColor: "#cbd5e1",
+        activeTabColor: "#0f172a",
+        tabTextColor: "#0f172a",
+        activeTabTextColor: "#f8fafc",
+        buttonColorMode: "solid-all",
+        buttonCycleHueStep: 15,
+        buttonCycleSaturation: 70,
+        buttonCycleLightness: 74,
+        buttonSolidColor: "#0f172a"
+      }
+    },
+    {
+      id: "builtin-forest-terminal",
+      name: "Forest Terminal",
+      theme: {
+        backgroundColor: "#071a12",
+        groupBackgroundColor: "#0d261d",
+        textColor: "#d1fae5",
+        buttonTextColor: "#062f23",
+        tabColor: "#14532d",
+        activeTabColor: "#10b981",
+        tabTextColor: "#d1fae5",
+        activeTabTextColor: "#052e22",
+        buttonColorMode: "cycle-custom",
+        buttonCycleHueStep: 11,
+        buttonCycleSaturation: 66,
+        buttonCycleLightness: 64,
+        buttonSolidColor: "#34d399"
+      }
+    },
+    {
+      id: "builtin-sunset-control",
+      name: "Sunset Control",
+      theme: {
+        backgroundColor: "#1f1027",
+        groupBackgroundColor: "#2c1637",
+        textColor: "#fae8ff",
+        buttonTextColor: "#240f2d",
+        tabColor: "#4a1d5d",
+        activeTabColor: "#f97316",
+        tabTextColor: "#f5d0fe",
+        activeTabTextColor: "#1f0a04",
+        buttonColorMode: "cycle-custom",
+        buttonCycleHueStep: 18,
+        buttonCycleSaturation: 85,
+        buttonCycleLightness: 68,
+        buttonSolidColor: "#fb923c"
+      }
+    },
+    {
+      id: "builtin-calm-blueprint",
+      name: "Calm Blueprint",
+      theme: {
+        backgroundColor: "#0b1324",
+        groupBackgroundColor: "#12203a",
+        textColor: "#dbeafe",
+        buttonTextColor: "#082f49",
+        tabColor: "#1d4ed8",
+        activeTabColor: "#38bdf8",
+        tabTextColor: "#dbeafe",
+        activeTabTextColor: "#082f49",
+        buttonColorMode: "solid-all",
+        buttonCycleHueStep: 15,
+        buttonCycleSaturation: 70,
+        buttonCycleLightness: 74,
+        buttonSolidColor: "#7dd3fc"
+      }
+    }
+  ];
 
   const buttonModalState = {
     dashboardId: "",
@@ -45,6 +142,7 @@
     groupId: "",
     buttonId: ""
   };
+  let activePointerSort = null;
 
   const loginView = document.getElementById("loginView");
   const adminView = document.getElementById("adminView");
@@ -83,6 +181,11 @@
   const liveColorEditorToggleBtn = document.getElementById("liveColorEditorToggleBtn");
   const liveColorEditorPanel = document.getElementById("liveColorEditorPanel");
   const resetThemeColorsBtn = document.getElementById("resetThemeColorsBtn");
+  const themePresetSelect = document.getElementById("themePresetSelect");
+  const themePresetPreviewBtn = document.getElementById("themePresetPreviewBtn");
+  const themePresetApplyBtn = document.getElementById("themePresetApplyBtn");
+  const themePresetNameInput = document.getElementById("themePresetNameInput");
+  const themePresetSaveBtn = document.getElementById("themePresetSaveBtn");
   const enableInternalLinksCheckbox = document.getElementById("enableInternalLinksCheckbox");
   const showLinkToggleCheckbox = document.getElementById("showLinkToggleCheckbox");
   const showLinkToggleField = document.getElementById("showLinkToggleField");
@@ -427,6 +530,394 @@
     button.textContent = iconText;
     button.title = label;
     button.setAttribute("aria-label", label);
+  }
+
+  function createDragHandleSpan(className, label) {
+    const handle = document.createElement("span");
+    handle.className = `drag-handle ${className}`.trim();
+    handle.textContent = "⋮⋮";
+    handle.title = label;
+    handle.setAttribute("aria-label", label);
+    handle.addEventListener("click", (event) => {
+      event.preventDefault();
+      event.stopPropagation();
+    });
+    return handle;
+  }
+
+  function createDragHandleButton(className, label) {
+    const handle = document.createElement("button");
+    handle.type = "button";
+    handle.className = `drag-handle ${className}`.trim();
+    handle.textContent = "⋮⋮";
+    handle.title = label;
+    handle.setAttribute("aria-label", label);
+    handle.addEventListener("click", (event) => {
+      event.preventDefault();
+      event.stopPropagation();
+    });
+    return handle;
+  }
+
+  function moveArrayItem(items, fromIndex, toIndex) {
+    if (!Array.isArray(items)) {
+      return false;
+    }
+    if (fromIndex === toIndex) {
+      return false;
+    }
+    if (fromIndex < 0 || fromIndex >= items.length) {
+      return false;
+    }
+    if (toIndex < 0 || toIndex >= items.length) {
+      return false;
+    }
+    const [moved] = items.splice(fromIndex, 1);
+    items.splice(toIndex, 0, moved);
+    return true;
+  }
+
+  function getSortableChildIndex(container, markerEl, itemSelector) {
+    let index = 0;
+    for (let cursor = container.firstElementChild; cursor; cursor = cursor.nextElementSibling) {
+      if (cursor === markerEl) {
+        return index;
+      }
+      if (
+        typeof cursor.matches === "function" &&
+        cursor.matches(itemSelector) &&
+        !cursor.classList.contains("sortable-placeholder")
+      ) {
+        index += 1;
+      }
+    }
+    return index;
+  }
+
+  function getSortableEndReference(container, options) {
+    if (!container || !options || !options.endBeforeSelector) {
+      return null;
+    }
+    return container.querySelector(options.endBeforeSelector);
+  }
+
+  function updatePointerSortFloatingPosition(state, clientX, clientY) {
+    if (!state || !state.started || !state.item) {
+      return;
+    }
+    const nextLeft = clientX - state.pointerOffsetX;
+    const nextTop = clientY - state.pointerOffsetY;
+    state.item.style.transform = `translate(${Math.round(nextLeft)}px, ${Math.round(nextTop)}px)`;
+  }
+
+  function repositionPointerSortPlaceholder(state, clientX, clientY) {
+    if (!state || !state.started || !state.placeholder || !state.container) {
+      return;
+    }
+
+    const { container, options, placeholder } = state;
+    const itemSelector = options.itemSelector;
+    const targetNode = document.elementFromPoint(clientX, clientY);
+    let targetItem =
+      targetNode && typeof targetNode.closest === "function" ? targetNode.closest(itemSelector) : null;
+
+    if (
+      !targetItem ||
+      targetItem === placeholder ||
+      targetItem === state.item ||
+      !container.contains(targetItem) ||
+      targetItem.classList.contains("sortable-placeholder")
+    ) {
+      targetItem = null;
+    }
+
+    if (targetItem) {
+      const rect = targetItem.getBoundingClientRect();
+      const centerX = rect.left + rect.width / 2;
+      const centerY = rect.top + rect.height / 2;
+      let insertBefore = false;
+
+      if (options.axis === "vertical") {
+        insertBefore = clientY < centerY;
+      } else if (options.axis === "horizontal") {
+        insertBefore = clientX < centerX;
+      } else {
+        const yOffset = clientY - centerY;
+        if (Math.abs(yOffset) > rect.height * 0.28) {
+          insertBefore = yOffset < 0;
+        } else {
+          insertBefore = clientX < centerX;
+        }
+      }
+
+      const referenceNode = insertBefore ? targetItem : targetItem.nextElementSibling;
+      if (referenceNode !== placeholder && placeholder.nextElementSibling !== referenceNode) {
+        container.insertBefore(placeholder, referenceNode);
+      }
+      return;
+    }
+
+    const containerRect = container.getBoundingClientRect();
+    const withinBounds =
+      clientX >= containerRect.left - 24 &&
+      clientX <= containerRect.right + 24 &&
+      clientY >= containerRect.top - 24 &&
+      clientY <= containerRect.bottom + 24;
+
+    if (!withinBounds) {
+      return;
+    }
+
+    const firstItem = Array.from(container.querySelectorAll(itemSelector)).find(
+      (itemEl) => itemEl !== placeholder && !itemEl.classList.contains("sortable-placeholder")
+    );
+    if (!firstItem) {
+      return;
+    }
+
+    if (options.axis === "vertical") {
+      const firstRect = firstItem.getBoundingClientRect();
+      if (clientY < firstRect.top + firstRect.height / 2) {
+        if (placeholder !== firstItem.previousElementSibling) {
+          container.insertBefore(placeholder, firstItem);
+        }
+        return;
+      }
+    }
+
+    const endReference = getSortableEndReference(container, options);
+    if (placeholder.nextElementSibling !== endReference) {
+      container.insertBefore(placeholder, endReference);
+    }
+  }
+
+  function cleanupActivePointerSort(state) {
+    if (!state) {
+      return;
+    }
+
+    window.removeEventListener("pointermove", state.onPointerMove, true);
+    window.removeEventListener("pointerup", state.onPointerUp, true);
+    window.removeEventListener("pointercancel", state.onPointerCancel, true);
+
+    if (state.handle && typeof state.handle.releasePointerCapture === "function") {
+      try {
+        if (state.handle.hasPointerCapture(state.pointerId)) {
+          state.handle.releasePointerCapture(state.pointerId);
+        }
+      } catch (error) {
+        // Ignore pointer capture cleanup errors on browsers that throw after DOM moves.
+      }
+    }
+
+    if (state.placeholder && state.placeholder.parentNode) {
+      state.placeholder.remove();
+    }
+
+    if (state.item) {
+      state.item.classList.remove("sortable-floating");
+      if (state.originalStyleAttr === null) {
+        state.item.removeAttribute("style");
+      } else {
+        state.item.setAttribute("style", state.originalStyleAttr);
+      }
+    }
+
+    document.body.classList.remove("sorting-active");
+    if (activePointerSort === state) {
+      activePointerSort = null;
+    }
+  }
+
+  function finishPointerSort(state, clientX, clientY) {
+    if (!state) {
+      return;
+    }
+
+    if (!state.started) {
+      cleanupActivePointerSort(state);
+      return;
+    }
+
+    repositionPointerSortPlaceholder(state, clientX, clientY);
+    const rawToIndex = getSortableChildIndex(state.container, state.placeholder, state.options.itemSelector);
+    const toIndex = rawToIndex > state.fromIndex ? rawToIndex - 1 : rawToIndex;
+
+    state.container.insertBefore(state.item, state.placeholder);
+    const changed = toIndex !== state.fromIndex;
+    const onReorder = state.options && typeof state.options.onReorder === "function" ? state.options.onReorder : null;
+
+    cleanupActivePointerSort(state);
+
+    if (!changed || !onReorder) {
+      return;
+    }
+
+    Promise.resolve(onReorder(state.fromIndex, toIndex)).catch((error) => {
+      console.error(error);
+      showMessage((state.options && state.options.errorMessage) || "Failed to reorder items.", "is-danger");
+      renderEditor();
+    });
+  }
+
+  function startPointerSort(state, event) {
+    if (!state || state.started) {
+      return;
+    }
+
+    const rect = state.item.getBoundingClientRect();
+    state.started = true;
+    state.pointerOffsetX = event.clientX - rect.left;
+    state.pointerOffsetY = event.clientY - rect.top;
+
+    const placeholder = state.item.cloneNode(false);
+    placeholder.className = `${state.item.className} sortable-placeholder`.trim();
+    placeholder.removeAttribute("id");
+    placeholder.style.width = `${Math.ceil(rect.width)}px`;
+    placeholder.style.height = `${Math.ceil(rect.height)}px`;
+    placeholder.style.margin = "0";
+    placeholder.setAttribute("aria-hidden", "true");
+
+    state.placeholder = placeholder;
+    state.originalStyleAttr = state.item.getAttribute("style");
+    state.container.insertBefore(placeholder, state.item.nextElementSibling);
+
+    state.item.classList.add("sortable-floating");
+    state.item.style.position = "fixed";
+    state.item.style.left = "0";
+    state.item.style.top = "0";
+    state.item.style.margin = "0";
+    state.item.style.width = `${Math.ceil(rect.width)}px`;
+    state.item.style.height = `${Math.ceil(rect.height)}px`;
+    state.item.style.zIndex = "9999";
+    state.item.style.pointerEvents = "none";
+    document.body.appendChild(state.item);
+    document.body.classList.add("sorting-active");
+    updatePointerSortFloatingPosition(state, event.clientX, event.clientY);
+    repositionPointerSortPlaceholder(state, event.clientX, event.clientY);
+  }
+
+  function bindPointerSortable(container, options) {
+    if (!container) {
+      return;
+    }
+
+    container.__kissPointerSortableOptions = options;
+    if (container.__kissPointerSortableBound) {
+      return;
+    }
+
+    container.__kissPointerSortableBound = true;
+    container.addEventListener(
+      "pointerdown",
+      (event) => {
+        const currentOptions = container.__kissPointerSortableOptions;
+        if (!currentOptions || !currentOptions.itemSelector || !currentOptions.handleSelector) {
+          return;
+        }
+
+        if (activePointerSort) {
+          return;
+        }
+
+        if (event.pointerType === "mouse" && event.button !== 0) {
+          return;
+        }
+
+        const handle =
+          event.target && typeof event.target.closest === "function"
+            ? event.target.closest(currentOptions.handleSelector)
+            : null;
+        if (!handle || !container.contains(handle)) {
+          return;
+        }
+
+        const item = handle.closest(currentOptions.itemSelector);
+        if (!item || !container.contains(item)) {
+          return;
+        }
+
+        const sortableItems = Array.from(container.querySelectorAll(currentOptions.itemSelector)).filter(
+          (itemEl) => !itemEl.classList.contains("sortable-placeholder")
+        );
+        const fromIndex = sortableItems.indexOf(item);
+        if (fromIndex < 0 || sortableItems.length <= 1) {
+          return;
+        }
+
+        event.preventDefault();
+        event.stopPropagation();
+
+        const state = {
+          container,
+          options: currentOptions,
+          handle,
+          item,
+          pointerId: event.pointerId,
+          started: false,
+          fromIndex,
+          startX: event.clientX,
+          startY: event.clientY,
+          placeholder: null,
+          originalStyleAttr: null,
+          pointerOffsetX: 0,
+          pointerOffsetY: 0,
+          onPointerMove: null,
+          onPointerUp: null,
+          onPointerCancel: null
+        };
+
+        state.onPointerMove = (moveEvent) => {
+          if (moveEvent.pointerId !== state.pointerId) {
+            return;
+          }
+          if (!state.started) {
+            const dx = moveEvent.clientX - state.startX;
+            const dy = moveEvent.clientY - state.startY;
+            if (Math.hypot(dx, dy) < 6) {
+              return;
+            }
+            startPointerSort(state, moveEvent);
+          }
+          moveEvent.preventDefault();
+          updatePointerSortFloatingPosition(state, moveEvent.clientX, moveEvent.clientY);
+          repositionPointerSortPlaceholder(state, moveEvent.clientX, moveEvent.clientY);
+        };
+
+        state.onPointerUp = (upEvent) => {
+          if (upEvent.pointerId !== state.pointerId) {
+            return;
+          }
+          upEvent.preventDefault();
+          finishPointerSort(state, upEvent.clientX, upEvent.clientY);
+        };
+
+        state.onPointerCancel = (cancelEvent) => {
+          if (cancelEvent.pointerId !== state.pointerId) {
+            return;
+          }
+          cancelEvent.preventDefault();
+          if (state.started && state.placeholder) {
+            state.container.insertBefore(state.item, state.placeholder);
+          }
+          cleanupActivePointerSort(state);
+        };
+
+        if (typeof handle.setPointerCapture === "function") {
+          try {
+            handle.setPointerCapture(event.pointerId);
+          } catch (error) {
+            // Pointer capture is optional and may fail for some element/browser combinations.
+          }
+        }
+
+        activePointerSort = state;
+        window.addEventListener("pointermove", state.onPointerMove, true);
+        window.addEventListener("pointerup", state.onPointerUp, true);
+        window.addEventListener("pointercancel", state.onPointerCancel, true);
+      },
+      true
+    );
   }
 
   function iconSource(buttonEntry) {
@@ -781,6 +1272,7 @@
           ...buildDefaultThemeValues(),
           enableInternalLinks: false,
           showLinkModeToggle: true,
+          themePresets: [],
           groups: []
         }
       ];
@@ -800,6 +1292,249 @@
 
   function buildDefaultThemeValues() {
     return { ...DEFAULT_THEME_COLOR_VALUES };
+  }
+
+  function normalizeThemePresetTheme(theme) {
+    const defaults = DEFAULT_BUTTON_COLOR_OPTIONS;
+    return {
+      backgroundColor: normalizeHexColor(theme && theme.backgroundColor) || DEFAULT_DASHBOARD_BG_COLOR,
+      groupBackgroundColor: normalizeHexColor(theme && theme.groupBackgroundColor) || DEFAULT_GROUP_BOX_BG_COLOR,
+      textColor: normalizeHexColor(theme && theme.textColor) || DEFAULT_PAGE_TEXT_COLOR,
+      buttonTextColor: normalizeHexColor(theme && theme.buttonTextColor) || DEFAULT_BUTTON_TEXT_COLOR,
+      tabColor: normalizeHexColor(theme && theme.tabColor) || DEFAULT_TAB_COLOR,
+      activeTabColor: normalizeHexColor(theme && theme.activeTabColor) || DEFAULT_ACTIVE_TAB_COLOR,
+      tabTextColor: normalizeHexColor(theme && theme.tabTextColor) || DEFAULT_TAB_TEXT_COLOR,
+      activeTabTextColor: normalizeHexColor(theme && theme.activeTabTextColor) || DEFAULT_ACTIVE_TAB_TEXT_COLOR,
+      buttonColorMode: DashboardCommon.normalizeButtonColorMode(theme && theme.buttonColorMode),
+      buttonCycleHueStep: clampInteger(
+        theme && theme.buttonCycleHueStep,
+        1,
+        180,
+        defaults.buttonCycleHueStep
+      ),
+      buttonCycleSaturation: clampInteger(
+        theme && theme.buttonCycleSaturation,
+        0,
+        100,
+        defaults.buttonCycleSaturation
+      ),
+      buttonCycleLightness: clampInteger(
+        theme && theme.buttonCycleLightness,
+        0,
+        100,
+        defaults.buttonCycleLightness
+      ),
+      buttonSolidColor: normalizeHexColor(theme && theme.buttonSolidColor) || defaults.buttonSolidColor
+    };
+  }
+
+  function readThemePresetThemeFromControls() {
+    const theme = {};
+    themeColorControls.forEach((control) => {
+      theme[control.key] = readThemeColorControlValue(control) || control.fallback;
+    });
+    return normalizeThemePresetTheme({
+      ...theme,
+      ...readButtonColorSettingsFromControls()
+    });
+  }
+
+  function applyThemePresetThemeToControls(theme) {
+    const normalized = normalizeThemePresetTheme(theme);
+    themeColorControls.forEach((control) => {
+      setThemeColorControlValue(control, normalized[control.key]);
+    });
+    setButtonColorControlsFromDashboard(normalized);
+    applyAdminThemePreview();
+    renderGroupsEditor();
+    return normalized;
+  }
+
+  function getNormalizedCustomThemePresets(dashboard) {
+    const source = Array.isArray(dashboard && dashboard.themePresets) ? dashboard.themePresets : [];
+    return source.map((preset, index) => {
+      const presetId =
+        preset && typeof preset.id === "string" && preset.id.trim()
+          ? preset.id.trim()
+          : `theme-preset-${index + 1}`;
+      const presetName =
+        preset && typeof preset.name === "string" && preset.name.trim()
+          ? preset.name.trim()
+          : `Theme ${index + 1}`;
+      return {
+        id: presetId,
+        name: presetName,
+        theme: normalizeThemePresetTheme(preset && preset.theme)
+      };
+    });
+  }
+
+  function refreshThemePresetButtons() {
+    const hasSelection = Boolean(themePresetSelect && themePresetSelect.value);
+    if (themePresetPreviewBtn) {
+      themePresetPreviewBtn.disabled = !hasSelection;
+    }
+    if (themePresetApplyBtn) {
+      themePresetApplyBtn.disabled = !hasSelection;
+    }
+  }
+
+  function renderThemePresetOptions() {
+    if (!themePresetSelect) {
+      return;
+    }
+
+    const dashboard = getActiveDashboard();
+    const preferredValue =
+      (themePresetSelect.dataset && themePresetSelect.dataset.lastValue) || themePresetSelect.value || "";
+    const customPresets = getNormalizedCustomThemePresets(dashboard);
+    const validValues = new Set();
+
+    themePresetSelect.innerHTML = "";
+
+    const placeholder = document.createElement("option");
+    placeholder.value = "";
+    placeholder.textContent = "Select a theme preset...";
+    themePresetSelect.appendChild(placeholder);
+    validValues.add("");
+
+    const builtInGroup = document.createElement("optgroup");
+    builtInGroup.label = "Built-in";
+    BUILT_IN_THEME_PRESETS.forEach((preset) => {
+      const option = document.createElement("option");
+      option.value = `builtin:${preset.id}`;
+      option.textContent = preset.name;
+      builtInGroup.appendChild(option);
+      validValues.add(option.value);
+    });
+    themePresetSelect.appendChild(builtInGroup);
+
+    if (customPresets.length) {
+      const savedGroup = document.createElement("optgroup");
+      savedGroup.label = "Saved for This Tab";
+      customPresets.forEach((preset) => {
+        const option = document.createElement("option");
+        option.value = `saved:${preset.id}`;
+        option.textContent = preset.name;
+        savedGroup.appendChild(option);
+        validValues.add(option.value);
+      });
+      themePresetSelect.appendChild(savedGroup);
+    }
+
+    themePresetSelect.value = validValues.has(preferredValue) ? preferredValue : "";
+    if (themePresetSelect.dataset) {
+      themePresetSelect.dataset.lastValue = themePresetSelect.value;
+    }
+    refreshThemePresetButtons();
+  }
+
+  function getSelectedThemePreset() {
+    if (!themePresetSelect) {
+      return null;
+    }
+    const value = (themePresetSelect.value || "").trim();
+    if (!value) {
+      return null;
+    }
+
+    const separatorIndex = value.indexOf(":");
+    if (separatorIndex <= 0) {
+      return null;
+    }
+
+    const scope = value.slice(0, separatorIndex);
+    const presetId = value.slice(separatorIndex + 1);
+    if (!presetId) {
+      return null;
+    }
+
+    if (scope === "builtin") {
+      const preset = BUILT_IN_THEME_PRESETS.find((item) => item.id === presetId);
+      return preset ? { scope, ...preset, theme: normalizeThemePresetTheme(preset.theme) } : null;
+    }
+
+    if (scope === "saved") {
+      const dashboard = getActiveDashboard();
+      const preset = getNormalizedCustomThemePresets(dashboard).find((item) => item.id === presetId);
+      return preset ? { scope, ...preset } : null;
+    }
+
+    return null;
+  }
+
+  function previewSelectedThemePreset() {
+    const preset = getSelectedThemePreset();
+    if (!preset) {
+      showMessage("Select a theme preset first.", "is-danger");
+      return;
+    }
+    applyThemePresetThemeToControls(preset.theme);
+    if (themePresetNameInput && !themePresetNameInput.value.trim()) {
+      themePresetNameInput.value = preset.name;
+    }
+    showMessage(`Previewing "${preset.name}". Click Load to save it to this tab.`, "is-success");
+  }
+
+  async function loadSelectedThemePreset() {
+    hideMessage();
+    const preset = getSelectedThemePreset();
+    if (!preset) {
+      showMessage("Select a theme preset first.", "is-danger");
+      return;
+    }
+    applyThemePresetThemeToControls(preset.theme);
+    if (themePresetNameInput && !themePresetNameInput.value.trim()) {
+      themePresetNameInput.value = preset.name;
+    }
+    await saveActiveDashboardSettings();
+  }
+
+  async function saveCurrentThemePreset() {
+    hideMessage();
+    const dashboard = getActiveDashboard();
+    if (!dashboard) {
+      showMessage("Dashboard not found.", "is-danger");
+      return;
+    }
+    const presetName = (themePresetNameInput && themePresetNameInput.value ? themePresetNameInput.value : "").trim();
+    if (!presetName) {
+      showMessage("Preset name is required.", "is-danger");
+      return;
+    }
+
+    const theme = readThemePresetThemeFromControls();
+    const existingPresets = Array.isArray(dashboard.themePresets) ? dashboard.themePresets : [];
+    const existingIndex = existingPresets.findIndex((preset) => {
+      const name = preset && typeof preset.name === "string" ? preset.name.trim().toLowerCase() : "";
+      return name === presetName.toLowerCase();
+    });
+
+    const presetId =
+      existingIndex >= 0 &&
+      existingPresets[existingIndex] &&
+      typeof existingPresets[existingIndex].id === "string" &&
+      existingPresets[existingIndex].id.trim()
+        ? existingPresets[existingIndex].id.trim()
+        : DashboardCommon.createId("theme");
+
+    const nextPreset = {
+      id: presetId,
+      name: presetName,
+      theme
+    };
+
+    dashboard.themePresets = existingPresets.slice();
+    if (existingIndex >= 0) {
+      dashboard.themePresets.splice(existingIndex, 1, nextPreset);
+    } else {
+      dashboard.themePresets.push(nextPreset);
+    }
+
+    if (themePresetSelect && themePresetSelect.dataset) {
+      themePresetSelect.dataset.lastValue = `saved:${presetId}`;
+    }
+    await persistConfig(existingIndex >= 0 ? "Theme preset updated." : "Theme preset saved.");
   }
 
   function isInternalLinksEnabledForDashboard(dashboard) {
@@ -1334,16 +2069,26 @@
 
     config.dashboards.forEach((dashboard) => {
       const li = document.createElement("li");
-      li.className = dashboard.id === activeDashboardId ? "is-active" : "";
+      li.className = `${dashboard.id === activeDashboardId ? "is-active " : ""}tab-sort-item`.trim();
+      li.setAttribute("data-tab-sort-item", "");
+      li.setAttribute("data-dashboard-id", dashboard.id);
 
       const link = document.createElement("a");
       link.href = "#";
-      link.textContent = dashboard.label;
       link.setAttribute("role", "button");
       link.addEventListener("click", (event) => {
         event.preventDefault();
         setActiveDashboard(dashboard.id);
       });
+
+      const label = document.createElement("span");
+      label.className = "tab-link-label";
+      label.textContent = dashboard.label;
+
+      const dragHandle = createDragHandleSpan("tab-drag-handle", `Drag to reorder tab ${dashboard.label}`);
+
+      link.appendChild(label);
+      link.appendChild(dragHandle);
 
       li.appendChild(link);
       mainTabsList.appendChild(li);
@@ -1371,11 +2116,27 @@
     navLink.textContent = "Dashboard";
     navLi.appendChild(navLink);
     mainTabsList.appendChild(navLi);
+
+    bindPointerSortable(mainTabsList, {
+      itemSelector: "[data-tab-sort-item]",
+      handleSelector: ".tab-drag-handle",
+      axis: "horizontal",
+      endBeforeSelector: ".add-tab",
+      errorMessage: "Failed to reorder tabs.",
+      onReorder: async (fromIndex, toIndex) => {
+        if (!moveArrayItem(config.dashboards, fromIndex, toIndex)) {
+          return;
+        }
+        await persistConfig("Tab order updated.");
+      }
+    });
   }
 
   function renderGroupButtons(dashboard, group, groupIndex, colorStart) {
     const wrapper = document.createElement("div");
     wrapper.className = "columns is-mobile is-multiline entry-grid";
+    wrapper.setAttribute("data-button-sort-container", "");
+    wrapper.setAttribute("data-group-id", group.id);
 
     let colorIndex = colorStart;
 
@@ -1385,6 +2146,8 @@
 
       const col = document.createElement("div");
       col.className = "column is-half-mobile is-one-third-tablet is-one-quarter-desktop";
+      col.setAttribute("data-button-sort-item", "");
+      col.setAttribute("data-button-id", buttonEntry.id);
 
       const card = document.createElement("div");
       card.className = "entry-admin-card";
@@ -1430,44 +2193,17 @@
 
       const actions = document.createElement("div");
       actions.className = "mini-actions";
-
-      const upBtn = document.createElement("button");
-      upBtn.type = "button";
-      setIconActionButton(upBtn, "is-info is-light", "↑", "Move button up");
-      upBtn.disabled = buttonIndex === 0;
-      upBtn.addEventListener("click", async () => {
-        if (buttonIndex === 0) {
-          return;
-        }
-        const buttons = dashboard.groups[groupIndex].entries;
-        const previous = buttons[buttonIndex - 1];
-        buttons[buttonIndex - 1] = buttons[buttonIndex];
-        buttons[buttonIndex] = previous;
-        await persistConfig("Button order updated.");
-      });
-
-      const downBtn = document.createElement("button");
-      downBtn.type = "button";
-      setIconActionButton(downBtn, "is-info is-light", "↓", "Move button down");
-      downBtn.disabled = buttonIndex === group.entries.length - 1;
-      downBtn.addEventListener("click", async () => {
-        if (buttonIndex >= group.entries.length - 1) {
-          return;
-        }
-        const buttons = dashboard.groups[groupIndex].entries;
-        const next = buttons[buttonIndex + 1];
-        buttons[buttonIndex + 1] = buttons[buttonIndex];
-        buttons[buttonIndex] = next;
-        await persistConfig("Button order updated.");
-      });
+      const dragHandle = createDragHandleButton(
+        "button-drag-handle",
+        `Drag to reorder button ${buttonEntry.name || "button"}`
+      );
 
       const deleteBtn = document.createElement("button");
       deleteBtn.type = "button";
       setIconActionButton(deleteBtn, "is-danger is-light", "🗑", "Delete button");
       deleteBtn.addEventListener("click", () => openDeleteButtonModal(dashboard, group, buttonEntry));
 
-      actions.appendChild(upBtn);
-      actions.appendChild(downBtn);
+      actions.appendChild(dragHandle);
       actions.appendChild(deleteBtn);
 
       card.appendChild(preview);
@@ -1478,6 +2214,7 @@
 
     const addCol = document.createElement("div");
     addCol.className = "column is-half-mobile is-one-third-tablet is-one-quarter-desktop";
+    addCol.setAttribute("data-entry-add-slot", "");
 
     const addCard = document.createElement("div");
     addCard.className = "entry-admin-card";
@@ -1493,6 +2230,29 @@
     addCard.appendChild(addButton);
     addCol.appendChild(addCard);
     wrapper.appendChild(addCol);
+
+    bindPointerSortable(wrapper, {
+      itemSelector: "[data-button-sort-item]",
+      handleSelector: ".button-drag-handle",
+      axis: "grid",
+      endBeforeSelector: "[data-entry-add-slot]",
+      errorMessage: "Failed to reorder buttons.",
+      onReorder: async (fromIndex, toIndex) => {
+        const activeDashboard = getActiveDashboard();
+        if (!activeDashboard) {
+          throw new Error("Dashboard not found.");
+        }
+        const targetGroupIndex = getGroupIndex(activeDashboard, group.id);
+        if (targetGroupIndex < 0) {
+          throw new Error("Group not found.");
+        }
+        const buttons = activeDashboard.groups[targetGroupIndex].entries;
+        if (!moveArrayItem(buttons, fromIndex, toIndex)) {
+          return;
+        }
+        await persistConfig("Button order updated.");
+      }
+    });
 
     return { wrapper, nextColor: colorIndex };
   }
@@ -1592,6 +2352,22 @@
       DashboardCommon.normalizeButtonColorMode(previewDashboard && previewDashboard.buttonColorMode) === "solid-per-group";
 
     if (!dashboard.groups.length) {
+      bindPointerSortable(groupsEditor, {
+        itemSelector: "[data-group-sort-item]",
+        handleSelector: ".group-drag-handle",
+        axis: "vertical",
+        errorMessage: "Failed to reorder groups.",
+        onReorder: async (fromIndex, toIndex) => {
+          const activeDashboard = getActiveDashboard();
+          if (!activeDashboard) {
+            throw new Error("Dashboard not found.");
+          }
+          if (!moveArrayItem(activeDashboard.groups, fromIndex, toIndex)) {
+            return;
+          }
+          await persistConfig("Group order updated.");
+        }
+      });
       return;
     }
 
@@ -1600,6 +2376,8 @@
     dashboard.groups.forEach((group, groupIndex) => {
       const box = document.createElement("section");
       box.className = `box group-box${group.groupEnd ? " group-end" : ""}`;
+      box.setAttribute("data-group-sort-item", "");
+      box.setAttribute("data-group-id", group.id);
 
       const header = document.createElement("div");
       header.className = "group-head";
@@ -1645,42 +2423,17 @@
 
       const actions = document.createElement("div");
       actions.className = "mini-actions";
-
-      const upBtn = document.createElement("button");
-      upBtn.type = "button";
-      setIconActionButton(upBtn, "is-info is-light", "↑", "Move group up");
-      upBtn.disabled = groupIndex === 0;
-      upBtn.addEventListener("click", async () => {
-        if (groupIndex === 0) {
-          return;
-        }
-        const previous = dashboard.groups[groupIndex - 1];
-        dashboard.groups[groupIndex - 1] = dashboard.groups[groupIndex];
-        dashboard.groups[groupIndex] = previous;
-        await persistConfig("Group order updated.");
-      });
-
-      const downBtn = document.createElement("button");
-      downBtn.type = "button";
-      setIconActionButton(downBtn, "is-info is-light", "↓", "Move group down");
-      downBtn.disabled = groupIndex === dashboard.groups.length - 1;
-      downBtn.addEventListener("click", async () => {
-        if (groupIndex >= dashboard.groups.length - 1) {
-          return;
-        }
-        const next = dashboard.groups[groupIndex + 1];
-        dashboard.groups[groupIndex + 1] = dashboard.groups[groupIndex];
-        dashboard.groups[groupIndex] = next;
-        await persistConfig("Group order updated.");
-      });
+      const dragHandle = createDragHandleButton(
+        "group-drag-handle",
+        `Drag to reorder group ${group.title || "group"}`
+      );
 
       const deleteBtn = document.createElement("button");
       deleteBtn.type = "button";
       setIconActionButton(deleteBtn, "is-danger is-light", "🗑", "Delete group");
       deleteBtn.addEventListener("click", () => openDeleteGroupModal(dashboard, group));
 
-      actions.appendChild(upBtn);
-      actions.appendChild(downBtn);
+      actions.appendChild(dragHandle);
       actions.appendChild(deleteBtn);
 
       headerMain.prepend(titleInput);
@@ -1693,6 +2446,23 @@
       box.appendChild(buttons.wrapper);
 
       groupsEditor.appendChild(box);
+    });
+
+    bindPointerSortable(groupsEditor, {
+      itemSelector: "[data-group-sort-item]",
+      handleSelector: ".group-drag-handle",
+      axis: "vertical",
+      errorMessage: "Failed to reorder groups.",
+      onReorder: async (fromIndex, toIndex) => {
+        const activeDashboard = getActiveDashboard();
+        if (!activeDashboard) {
+          throw new Error("Dashboard not found.");
+        }
+        if (!moveArrayItem(activeDashboard.groups, fromIndex, toIndex)) {
+          return;
+        }
+        await persistConfig("Group order updated.");
+      }
     });
   }
 
@@ -1718,6 +2488,7 @@
       normalizeHexColor(dashboard && dashboard.activeTabTextColor)
     );
     setButtonColorControlsFromDashboard(dashboard);
+    renderThemePresetOptions();
     applyAdminThemePreview();
     refreshButtonModalLinkFields();
     if (deleteDashboardBtn) {
@@ -2137,6 +2908,55 @@
     });
   }
 
+  if (themePresetSelect) {
+    themePresetSelect.addEventListener("change", () => {
+      if (themePresetSelect.dataset) {
+        themePresetSelect.dataset.lastValue = themePresetSelect.value || "";
+      }
+      const preset = getSelectedThemePreset();
+      if (preset && themePresetNameInput && !themePresetNameInput.value.trim()) {
+        themePresetNameInput.value = preset.name;
+      }
+      refreshThemePresetButtons();
+    });
+  }
+
+  if (themePresetPreviewBtn) {
+    themePresetPreviewBtn.addEventListener("click", () => {
+      previewSelectedThemePreset();
+    });
+  }
+
+  if (themePresetApplyBtn) {
+    themePresetApplyBtn.addEventListener("click", () => {
+      loadSelectedThemePreset().catch((error) => {
+        console.error(error);
+        showMessage("Failed to load theme preset.", "is-danger");
+      });
+    });
+  }
+
+  if (themePresetSaveBtn) {
+    themePresetSaveBtn.addEventListener("click", () => {
+      saveCurrentThemePreset().catch((error) => {
+        console.error(error);
+        showMessage("Failed to save theme preset.", "is-danger");
+      });
+    });
+  }
+
+  if (themePresetNameInput) {
+    themePresetNameInput.addEventListener("keydown", (event) => {
+      if (event.key !== "Enter") {
+        return;
+      }
+      event.preventDefault();
+      if (themePresetSaveBtn) {
+        themePresetSaveBtn.click();
+      }
+    });
+  }
+
   if (showLinkToggleCheckbox) {
     showLinkToggleCheckbox.addEventListener("change", () => {
       saveActiveDashboardSettings().catch((error) => {
@@ -2403,6 +3223,7 @@
         ...buildDefaultThemeValues(),
         enableInternalLinks: false,
         showLinkModeToggle: true,
+        themePresets: [],
         groups: []
       };
 
