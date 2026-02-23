@@ -910,14 +910,19 @@
     const placeholder = state.item.cloneNode(true);
     placeholder.className = `${state.item.className} sortable-placeholder`.trim();
     placeholder.removeAttribute("id");
-    placeholder.style.width = `${Math.ceil(rect.width)}px`;
-    placeholder.style.height = `${Math.ceil(rect.height)}px`;
-    placeholder.style.margin = "0";
+    if ((state.options && state.options.axis) !== "grid") {
+      placeholder.style.width = `${Math.ceil(rect.width)}px`;
+      placeholder.style.height = `${Math.ceil(rect.height)}px`;
+      placeholder.style.margin = "0";
+    } else {
+      placeholder.style.minHeight = `${Math.ceil(rect.height)}px`;
+    }
     placeholder.setAttribute("aria-hidden", "true");
 
     state.placeholder = placeholder;
     state.originalStyleAttr = state.item.getAttribute("style");
     state.container.insertBefore(placeholder, state.item);
+    state.initialPlaceholderRect = placeholder.getBoundingClientRect();
 
     state.item.classList.add("sortable-floating");
     state.item.style.position = "fixed";
@@ -1023,6 +1028,29 @@
           if (state.skipNextPlaceholderReposition) {
             state.skipNextPlaceholderReposition = false;
             return;
+          }
+          if (
+            (state.options && state.options.axis) === "grid" &&
+            state.initialPlaceholderRect &&
+            !state.gridOriginSlotExited
+          ) {
+            const probeX =
+              moveEvent.clientX +
+              (typeof state.sortProbeOffsetX === "number" ? state.sortProbeOffsetX : 0);
+            const probeY =
+              moveEvent.clientY +
+              (typeof state.sortProbeOffsetY === "number" ? state.sortProbeOffsetY : 0);
+            const r = state.initialPlaceholderRect;
+            const inset = 6;
+            const stillInsideOriginSlot =
+              probeX >= r.left + inset &&
+              probeX <= r.right - inset &&
+              probeY >= r.top + inset &&
+              probeY <= r.bottom - inset;
+            if (stillInsideOriginSlot) {
+              return;
+            }
+            state.gridOriginSlotExited = true;
           }
           repositionPointerSortPlaceholder(state, moveEvent.clientX, moveEvent.clientY);
         };
