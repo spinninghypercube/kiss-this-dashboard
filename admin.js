@@ -917,7 +917,7 @@
 
     state.placeholder = placeholder;
     state.originalStyleAttr = state.item.getAttribute("style");
-    state.container.insertBefore(placeholder, state.item.nextElementSibling);
+    state.container.insertBefore(placeholder, state.item);
 
     state.item.classList.add("sortable-floating");
     state.item.style.position = "fixed";
@@ -930,6 +930,7 @@
     state.item.style.pointerEvents = "none";
     document.body.appendChild(state.item);
     document.body.classList.add("sorting-active");
+    state.skipNextPlaceholderReposition = true;
     state.lastRepositionX = event.clientX;
     state.lastRepositionY = event.clientY;
     updatePointerSortFloatingPosition(state, event.clientX, event.clientY);
@@ -1019,6 +1020,10 @@
           }
           moveEvent.preventDefault();
           updatePointerSortFloatingPosition(state, moveEvent.clientX, moveEvent.clientY);
+          if (state.skipNextPlaceholderReposition) {
+            state.skipNextPlaceholderReposition = false;
+            return;
+          }
           repositionPointerSortPlaceholder(state, moveEvent.clientX, moveEvent.clientY);
         };
 
