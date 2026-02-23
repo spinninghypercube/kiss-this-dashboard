@@ -1542,6 +1542,7 @@
       }
     }
   </style>
+  <link rel="stylesheet" href="assets/css/dashboard-shell-shared.css?v=2.0.0" />
 </head>
 <body>
   <section class="section">
@@ -1592,17 +1593,19 @@
       </div>
 
       <div id="adminView" class="is-hidden">
-        <div class="tabs is-boxed mode-tabs">
-          <div class="mode-tabs-row">
-            <div class="mode-tabs-scroll">
-              <ul id="mainTabsList"></ul>
+        <div class="toolbar mode-tabs-toolbar">
+          <div class="tabs is-boxed mode-tabs">
+            <div class="mode-tabs-row">
+              <div class="mode-tabs-scroll">
+                <ul id="mainTabsList"></ul>
+              </div>
+              <div id="mainTabsActions" class="mode-tabs-actions"></div>
             </div>
-            <div id="mainTabsActions" class="mode-tabs-actions"></div>
           </div>
-        </div>
-        <div id="mainTabsOverflowRow" class="toolbar-mode-row edit-tabs-overflow-row is-hidden">
-          <div class="toolbar-mode-left"></div>
-          <div id="mainTabsOverflowActions" class="toolbar-mode-actions"></div>
+          <div id="mainTabsOverflowRow" class="toolbar-mode-row mode-tabs-overflow-row is-hidden">
+            <div class="toolbar-mode-left"></div>
+            <div id="mainTabsOverflowActions" class="toolbar-mode-actions"></div>
+          </div>
         </div>
 
           <div class="admin-topbar-shell mt-3 mb-5">
@@ -2125,7 +2128,8 @@
     </div>
   </div>
 
-  <script src="dashboard-common.js?v=1.3.20"></script>
-  <script src="admin.js?v=1.3.28"></script>
+  <script src="dashboard-common.js?v=2.0.0"></script>
+  <script src="dashboard-ui.js?v=2.0.0"></script>
+  <script src="admin.js?v=2.0.0"></script>
 </body>
 </html>

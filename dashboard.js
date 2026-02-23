@@ -22,59 +22,31 @@
   }
 
   function normalizeHexColor(value) {
-    const text = (value || "").toString().trim();
-    return /^#[0-9a-fA-F]{6}$/.test(text) ? text.toLowerCase() : "";
+    return DashboardUI.normalizeHexColor(value);
   }
 
   function hexColorToRgb(value) {
-    const normalized = normalizeHexColor(value);
-    if (!normalized) {
-      return null;
-    }
-    return {
-      r: parseInt(normalized.slice(1, 3), 16),
-      g: parseInt(normalized.slice(3, 5), 16),
-      b: parseInt(normalized.slice(5, 7), 16)
-    };
+    return DashboardUI.hexColorToRgb(value);
   }
 
   function srgbChannelToLinear(channel) {
-    const value = channel / 255;
-    if (value <= 0.04045) {
-      return value / 12.92;
-    }
-    return Math.pow((value + 0.055) / 1.055, 2.4);
+    return DashboardUI.srgbChannelToLinear(channel);
   }
 
   function isHexColorDark(value) {
-    const rgb = hexColorToRgb(value);
-    if (!rgb) {
-      return true;
-    }
-    const luminance =
-      0.2126 * srgbChannelToLinear(rgb.r) +
-      0.7152 * srgbChannelToLinear(rgb.g) +
-      0.0722 * srgbChannelToLinear(rgb.b);
-    return luminance < 0.52;
+    return DashboardUI.isHexColorDark(value);
   }
 
   function pickHighContrastColor(value) {
-    return isHexColorDark(value) ? "#f8fafc" : "#0f172a";
+    return DashboardUI.pickHighContrastColor(value);
   }
 
   function hexColorToRgba(value, alpha) {
-    const rgb = hexColorToRgb(value) || { r: 248, g: 250, b: 252 };
-    const safeAlpha = Math.max(0, Math.min(1, Number(alpha) || 0));
-    return `rgba(${rgb.r}, ${rgb.g}, ${rgb.b}, ${safeAlpha})`;
+    return DashboardUI.hexColorToRgba(value, alpha);
   }
 
   function applyNavActionTabContrastTheme(surfaceColor) {
-    const navBg = pickHighContrastColor(surfaceColor);
-    const navText = pickHighContrastColor(navBg);
-    document.documentElement.style.setProperty("--dashboard-nav-tab-bg", navBg);
-    document.documentElement.style.setProperty("--dashboard-nav-tab-text", navText);
-    document.documentElement.style.setProperty("--dashboard-nav-tab-hover-bg", hexColorToRgba(navBg, 0.86));
-    document.documentElement.style.setProperty("--dashboard-nav-tab-hover-text", navText);
+    DashboardUI.applyNavActionTabContrastTheme(surfaceColor);
   }
 
   function redirectDashboardFallbackPaths() {
@@ -95,59 +67,7 @@
   }
 
   function createEditModeNavToggle(isChecked, onToggle) {
-    const wrapper = document.createElement("div");
-    wrapper.className = "mode-switch dashboard-link-mode nav-edit-mode-toggle";
-    wrapper.setAttribute("aria-label", "Edit");
-    wrapper.tabIndex = 0;
-
-    const labelText = document.createElement("span");
-    labelText.className = "mode-switch-label";
-    labelText.textContent = "Edit";
-
-    const switchLabel = document.createElement("label");
-    switchLabel.className = "ios-switch";
-
-    const input = document.createElement("input");
-    input.type = "checkbox";
-    input.checked = Boolean(isChecked);
-    input.setAttribute("aria-label", "Toggle Edit");
-
-    const slider = document.createElement("span");
-    slider.className = "ios-switch-slider";
-
-    const triggerToggle = (nextChecked) => {
-      input.checked = Boolean(nextChecked);
-      input.dispatchEvent(new Event("change", { bubbles: true }));
-    };
-
-    input.addEventListener("change", (event) => {
-      if (typeof onToggle === "function") {
-        onToggle(Boolean(event.target && event.target.checked));
-      }
-    });
-
-    wrapper.addEventListener("click", (event) => {
-      const clickedInsideSwitch =
-        event.target && typeof event.target.closest === "function" && event.target.closest(".ios-switch");
-      if (clickedInsideSwitch) {
-        return;
-      }
-      event.preventDefault();
-      triggerToggle(!input.checked);
-    });
-    wrapper.addEventListener("keydown", (event) => {
-      if (event.key !== "Enter" && event.key !== " ") {
-        return;
-      }
-      event.preventDefault();
-      triggerToggle(!input.checked);
-    });
-
-    switchLabel.appendChild(input);
-    switchLabel.appendChild(slider);
-    wrapper.appendChild(labelText);
-    wrapper.appendChild(switchLabel);
-    return wrapper;
+    return DashboardUI.createEditModeToggle(isChecked, onToggle);
   }
 
   function ensureDashboardEditToggle() {
@@ -176,18 +96,14 @@
     if (!dashboardTabsRowEl || !dashboardTabListEl) {
       return;
     }
-
-    const overflowing = dashboardTabListEl.scrollWidth > dashboardTabsRowEl.clientWidth + 1;
-    dashboardTabsRowEl.classList.toggle("tabs-overflowing", overflowing);
-
-    const editToggle = ensureDashboardEditToggle();
-    if (overflowing) {
-      if (toolbarModeActionsEl) {
-        toolbarModeActionsEl.appendChild(editToggle);
-      }
-    } else if (dashboardTabActionsEl) {
-      dashboardTabActionsEl.appendChild(editToggle);
-    }
+    DashboardUI.updateModeTabsOverflowLayout({
+      tabsRowEl: dashboardTabsRowEl,
+      tabsListEl: dashboardTabListEl,
+      inlineActionsEl: dashboardTabActionsEl,
+      overflowActionsEl: toolbarModeActionsEl,
+      actionEl: ensureDashboardEditToggle(),
+      fallbackActionWidth: 74
+    });
 
     updateToolbarModeRowVisibility();
   }
@@ -244,76 +160,13 @@
   }
 
   function applyDashboardTheme(dashboard) {
-    const pageColor = normalizeHexColor(dashboard && dashboard.backgroundColor);
-    const groupColor = normalizeHexColor(dashboard && dashboard.groupBackgroundColor);
-    const textColor = normalizeHexColor(dashboard && dashboard.textColor);
-    const buttonTextColor = normalizeHexColor(dashboard && dashboard.buttonTextColor);
-    const tabColor = normalizeHexColor(dashboard && dashboard.tabColor);
-    const activeTabColor = normalizeHexColor(dashboard && dashboard.activeTabColor);
-    const tabTextColor = normalizeHexColor(dashboard && dashboard.tabTextColor);
-    const activeTabTextColor = normalizeHexColor(dashboard && dashboard.activeTabTextColor);
-    const navSurfaceColor = pageColor || "#0f172a";
-    const pageSurfaceColor = pageColor || "#0f172a";
-    const groupSurfaceColor = groupColor || "#111827";
-    const flatGroupShell = pageSurfaceColor === groupSurfaceColor;
-
-    document.documentElement.classList.toggle("dashboard-group-shell-flat", flatGroupShell);
-
-    applyNavActionTabContrastTheme(navSurfaceColor);
-
-    if (pageColor) {
-      document.documentElement.style.setProperty("--dashboard-page-bg", pageColor);
-    } else {
-      document.documentElement.style.removeProperty("--dashboard-page-bg");
-    }
-
-    if (groupColor) {
-      document.documentElement.style.setProperty("--dashboard-group-bg", groupColor);
-      document.documentElement.style.setProperty("--dashboard-group-radius", "0.85rem");
-    } else {
-      document.documentElement.style.removeProperty("--dashboard-group-bg");
-      document.documentElement.style.removeProperty("--dashboard-group-radius");
-    }
-
-    if (textColor) {
-      document.documentElement.style.setProperty("--dashboard-text-color", textColor);
-    } else {
-      document.documentElement.style.removeProperty("--dashboard-text-color");
-    }
-
-    if (buttonTextColor) {
-      document.documentElement.style.setProperty("--dashboard-button-text-color", buttonTextColor);
-    } else {
-      document.documentElement.style.removeProperty("--dashboard-button-text-color");
-    }
-
-    if (tabColor) {
-      document.documentElement.style.setProperty("--dashboard-tab-bg", tabColor);
-      document.documentElement.style.setProperty("--dashboard-tab-hover-bg", tabColor);
-    } else {
-      document.documentElement.style.removeProperty("--dashboard-tab-bg");
-      document.documentElement.style.removeProperty("--dashboard-tab-hover-bg");
-    }
-
-    if (activeTabColor) {
-      document.documentElement.style.setProperty("--dashboard-tab-active-bg", activeTabColor);
-    } else {
-      document.documentElement.style.removeProperty("--dashboard-tab-active-bg");
-    }
-
-    if (tabTextColor) {
-      document.documentElement.style.setProperty("--dashboard-tab-text", tabTextColor);
-      document.documentElement.style.setProperty("--dashboard-tab-hover-text", tabTextColor);
-    } else {
-      document.documentElement.style.removeProperty("--dashboard-tab-text");
-      document.documentElement.style.removeProperty("--dashboard-tab-hover-text");
-    }
-
-    if (activeTabTextColor) {
-      document.documentElement.style.setProperty("--dashboard-tab-active-text", activeTabTextColor);
-    } else {
-      document.documentElement.style.removeProperty("--dashboard-tab-active-text");
-    }
+    DashboardUI.applyDashboardThemeCssVariables(dashboard, {
+      flatClassName: "dashboard-group-shell-flat",
+      groupRadius: "0.85rem",
+      setGroupRadius: true,
+      defaultPageColor: "#0f172a",
+      defaultGroupColor: "#111827"
+    });
   }
 
   function renderDashboardTabs() {
@@ -351,11 +204,7 @@
       dashboardTabsWrapEl.classList.remove("is-hidden");
     }
 
-    if (typeof window !== "undefined" && typeof window.requestAnimationFrame === "function") {
-      window.requestAnimationFrame(updateDashboardTabsOverflowLayout);
-    } else {
-      updateDashboardTabsOverflowLayout();
-    }
+    DashboardUI.scheduleModeTabsOverflowLayout(updateDashboardTabsOverflowLayout);
   }
 
   function renderLinkModeToggle() {
@@ -374,96 +223,14 @@
   }
 
   function renderContent() {
-    contentEl.innerHTML = "";
-
     const dashboard = getActiveDashboard();
     applyDashboardTheme(dashboard);
-    if (!dashboard || !dashboard.groups.length) {
-      const empty = document.createElement("div");
-      empty.className = "empty-state";
-      empty.textContent = "No groups configured yet. Open the Admin Panel to add one.";
-      contentEl.appendChild(empty);
-      return;
-    }
-
-    let colorIndex = 0;
-
-    dashboard.groups.forEach((group) => {
-      const section = document.createElement("section");
-      section.className = `group-box${group.groupEnd ? " group-end" : ""}`;
-
-      const title = document.createElement("h2");
-      title.className = "title is-6 group-title";
-      title.textContent = group.title || "Untitled Group";
-      section.appendChild(title);
-
-      const columns = document.createElement("div");
-      columns.className = "columns is-mobile is-multiline entry-grid";
-
-      group.entries.forEach((buttonEntry) => {
-        const effectiveMode =
-          dashboard && dashboard.enableInternalLinks && currentLinkMode === "internal" ? "internal" : "external";
-
-        const link =
-          buttonEntry &&
-          buttonEntry.links &&
-          typeof buttonEntry.links[effectiveMode] === "string"
-            ? buttonEntry.links[effectiveMode].trim()
-            : "";
-        const resolvedHref = effectiveMode === "external" ? DashboardCommon.normalizeExternalLinkHref(link) : link;
-
-        const color = DashboardCommon.getButtonColorPair(dashboard, group, colorIndex);
-        colorIndex += 1;
-
-        const column = document.createElement("div");
-        column.className = "column is-half-mobile is-one-third-tablet is-one-quarter-desktop";
-
-        const button = document.createElement("a");
-        button.className = "button is-fullwidth entry-button";
-        button.href = resolvedHref || "#";
-        button.target = "_blank";
-        button.rel = "noopener noreferrer";
-        button.style.backgroundColor = color.base;
-
-        button.addEventListener("mouseenter", () => {
-          button.style.backgroundColor = color.hover;
-        });
-
-        button.addEventListener("mouseleave", () => {
-          button.style.backgroundColor = color.base;
-        });
-
-        if (!resolvedHref) {
-          button.classList.add("is-static");
-          button.removeAttribute("target");
-          button.removeAttribute("rel");
-          button.addEventListener("click", (event) => {
-            event.preventDefault();
-          });
-        }
-
-        const iconSpan = document.createElement("span");
-        iconSpan.className = "icon entry-icon";
-        const iconSrc = getIconSource(buttonEntry);
-        if (iconSrc) {
-          const iconImg = document.createElement("img");
-          iconImg.src = iconSrc;
-          iconImg.alt = `${buttonEntry.name} icon`;
-          iconSpan.appendChild(iconImg);
-        }
-
-        const labelSpan = document.createElement("span");
-        labelSpan.className = "entry-label";
-        labelSpan.textContent = buttonEntry.name || "Unnamed";
-
-        button.appendChild(iconSpan);
-        button.appendChild(labelSpan);
-        column.appendChild(button);
-        columns.appendChild(column);
-      });
-
-      section.appendChild(columns);
-      contentEl.appendChild(section);
+    DashboardUI.renderDashboardContent({
+      containerEl: contentEl,
+      dashboard,
+      linkMode: currentLinkMode,
+      getIconSource,
+      emptyText: "No groups configured yet. Open the Admin Panel to add one."
     });
   }
 

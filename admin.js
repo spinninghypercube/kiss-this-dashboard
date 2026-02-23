@@ -568,59 +568,7 @@
   }
 
   function createEditModeNavToggle(isChecked, onToggle) {
-    const wrapper = document.createElement("div");
-    wrapper.className = "mode-switch dashboard-link-mode nav-edit-mode-toggle";
-    wrapper.setAttribute("aria-label", "Edit");
-    wrapper.tabIndex = 0;
-
-    const labelText = document.createElement("span");
-    labelText.className = "mode-switch-label";
-    labelText.textContent = "Edit";
-
-    const switchLabel = document.createElement("label");
-    switchLabel.className = "ios-switch";
-
-    const input = document.createElement("input");
-    input.type = "checkbox";
-    input.checked = Boolean(isChecked);
-    input.setAttribute("aria-label", "Toggle Edit");
-
-    const slider = document.createElement("span");
-    slider.className = "ios-switch-slider";
-
-    const triggerToggle = (nextChecked) => {
-      input.checked = Boolean(nextChecked);
-      input.dispatchEvent(new Event("change", { bubbles: true }));
-    };
-
-    input.addEventListener("change", (event) => {
-      if (typeof onToggle === "function") {
-        onToggle(Boolean(event.target && event.target.checked));
-      }
-    });
-
-    wrapper.addEventListener("click", (event) => {
-      const clickedInsideSwitch =
-        event.target && typeof event.target.closest === "function" && event.target.closest(".ios-switch");
-      if (clickedInsideSwitch) {
-        return;
-      }
-      event.preventDefault();
-      triggerToggle(!input.checked);
-    });
-    wrapper.addEventListener("keydown", (event) => {
-      if (event.key !== "Enter" && event.key !== " ") {
-        return;
-      }
-      event.preventDefault();
-      triggerToggle(!input.checked);
-    });
-
-    switchLabel.appendChild(input);
-    switchLabel.appendChild(slider);
-    wrapper.appendChild(labelText);
-    wrapper.appendChild(switchLabel);
-    return wrapper;
+    return DashboardUI.createEditModeToggle(isChecked, onToggle);
   }
 
   function ensureMainTabsEditToggle() {
@@ -1254,8 +1202,7 @@
   }
 
   function normalizeHexColor(value) {
-    const text = (value || "").toString().trim();
-    return /^#[0-9a-fA-F]{6}$/.test(text) ? text.toLowerCase() : "";
+    return DashboardUI.normalizeHexColor(value);
   }
 
   function normalizeHexColorLoose(value) {
@@ -1267,45 +1214,23 @@
   }
 
   function hexColorToRgb(value) {
-    const normalized = normalizeHexColor(value);
-    if (!normalized) {
-      return null;
-    }
-    return {
-      r: parseInt(normalized.slice(1, 3), 16),
-      g: parseInt(normalized.slice(3, 5), 16),
-      b: parseInt(normalized.slice(5, 7), 16)
-    };
+    return DashboardUI.hexColorToRgb(value);
   }
 
   function srgbChannelToLinear(channel) {
-    const value = channel / 255;
-    if (value <= 0.04045) {
-      return value / 12.92;
-    }
-    return Math.pow((value + 0.055) / 1.055, 2.4);
+    return DashboardUI.srgbChannelToLinear(channel);
   }
 
   function isHexColorDark(value) {
-    const rgb = hexColorToRgb(value);
-    if (!rgb) {
-      return true;
-    }
-    const luminance =
-      0.2126 * srgbChannelToLinear(rgb.r) +
-      0.7152 * srgbChannelToLinear(rgb.g) +
-      0.0722 * srgbChannelToLinear(rgb.b);
-    return luminance < 0.52;
+    return DashboardUI.isHexColorDark(value);
   }
 
   function pickHighContrastColor(value) {
-    return isHexColorDark(value) ? "#f8fafc" : "#0f172a";
+    return DashboardUI.pickHighContrastColor(value);
   }
 
   function hexColorToRgba(value, alpha) {
-    const rgb = hexColorToRgb(value) || { r: 248, g: 250, b: 252 };
-    const safeAlpha = Math.max(0, Math.min(1, Number(alpha) || 0));
-    return `rgba(${rgb.r}, ${rgb.g}, ${rgb.b}, ${safeAlpha})`;
+    return DashboardUI.hexColorToRgba(value, alpha);
   }
 
   function rgbToHex(rgb) {
@@ -1345,12 +1270,7 @@
   }
 
   function applyNavActionTabContrastTheme(surfaceColor) {
-    const navBg = pickHighContrastColor(surfaceColor);
-    const navText = pickHighContrastColor(navBg);
-    document.documentElement.style.setProperty("--dashboard-nav-tab-bg", navBg);
-    document.documentElement.style.setProperty("--dashboard-nav-tab-text", navText);
-    document.documentElement.style.setProperty("--dashboard-nav-tab-hover-bg", hexColorToRgba(navBg, 0.86));
-    document.documentElement.style.setProperty("--dashboard-nav-tab-hover-text", navText);
+    DashboardUI.applyNavActionTabContrastTheme(surfaceColor);
   }
 
   function applyAdminTextContrastTheme(groupSurfaceColor, pageSurfaceColor) {
@@ -1463,7 +1383,6 @@
     const activeTabTextColor = readThemeColorControlValue(getThemeColorControl("activeTabTextColor"));
     const dashboardSurfaceColor = dashboardColor || DEFAULT_DASHBOARD_BG_COLOR;
     const groupSurfaceColor = groupColor || DEFAULT_GROUP_BOX_BG_COLOR;
-    const flatGroupShell = dashboardSurfaceColor === groupSurfaceColor;
 
     updateColorSwatch(dashboardBgColorSwatch, dashboardColor, DEFAULT_DASHBOARD_BG_COLOR);
     updateColorSwatch(groupBgColorSwatch, groupColor, DEFAULT_GROUP_BOX_BG_COLOR);
@@ -1473,62 +1392,28 @@
     updateColorSwatch(activeTabColorSwatch, activeTabColor, DEFAULT_ACTIVE_TAB_COLOR);
     updateColorSwatch(tabTextColorSwatch, tabTextColor, DEFAULT_TAB_TEXT_COLOR);
     updateColorSwatch(activeTabTextColorSwatch, activeTabTextColor, DEFAULT_ACTIVE_TAB_TEXT_COLOR);
-    document.documentElement.classList.toggle("admin-group-shell-flat", flatGroupShell);
+
+    DashboardUI.applyDashboardThemeCssVariables(
+      {
+        backgroundColor: dashboardColor,
+        groupBackgroundColor: groupColor,
+        textColor: pageTextColor,
+        buttonTextColor,
+        tabColor,
+        activeTabColor,
+        tabTextColor,
+        activeTabTextColor
+      },
+      {
+        flatClassName: "admin-group-shell-flat",
+        setGroupRadius: false,
+        defaultPageColor: DEFAULT_DASHBOARD_BG_COLOR,
+        defaultGroupColor: DEFAULT_GROUP_BOX_BG_COLOR
+      }
+    );
+
     applyAdminTextContrastTheme(groupSurfaceColor, dashboardSurfaceColor);
     applyAdminAddContrastTheme(groupSurfaceColor, dashboardSurfaceColor);
-    applyNavActionTabContrastTheme(dashboardSurfaceColor);
-
-    if (dashboardColor) {
-      document.documentElement.style.setProperty("--dashboard-page-bg", dashboardColor);
-    } else {
-      document.documentElement.style.removeProperty("--dashboard-page-bg");
-    }
-
-    if (groupColor) {
-      document.documentElement.style.setProperty("--dashboard-group-bg", groupColor);
-    } else {
-      document.documentElement.style.removeProperty("--dashboard-group-bg");
-    }
-
-    if (pageTextColor) {
-      document.documentElement.style.setProperty("--dashboard-text-color", pageTextColor);
-    } else {
-      document.documentElement.style.removeProperty("--dashboard-text-color");
-    }
-
-    if (buttonTextColor) {
-      document.documentElement.style.setProperty("--dashboard-button-text-color", buttonTextColor);
-    } else {
-      document.documentElement.style.removeProperty("--dashboard-button-text-color");
-    }
-
-    if (tabColor) {
-      document.documentElement.style.setProperty("--dashboard-tab-bg", tabColor);
-      document.documentElement.style.setProperty("--dashboard-tab-hover-bg", tabColor);
-    } else {
-      document.documentElement.style.removeProperty("--dashboard-tab-bg");
-      document.documentElement.style.removeProperty("--dashboard-tab-hover-bg");
-    }
-
-    if (activeTabColor) {
-      document.documentElement.style.setProperty("--dashboard-tab-active-bg", activeTabColor);
-    } else {
-      document.documentElement.style.removeProperty("--dashboard-tab-active-bg");
-    }
-
-    if (tabTextColor) {
-      document.documentElement.style.setProperty("--dashboard-tab-text", tabTextColor);
-      document.documentElement.style.setProperty("--dashboard-tab-hover-text", tabTextColor);
-    } else {
-      document.documentElement.style.removeProperty("--dashboard-tab-text");
-      document.documentElement.style.removeProperty("--dashboard-tab-hover-text");
-    }
-
-    if (activeTabTextColor) {
-      document.documentElement.style.setProperty("--dashboard-tab-active-text", activeTabTextColor);
-    } else {
-      document.documentElement.style.removeProperty("--dashboard-tab-active-text");
-    }
   }
 
   function normalizePreviewMode(mode) {
@@ -2492,23 +2377,19 @@
   }
 
   function updateMainTabsOverflowLayout() {
-    if (!mainTabsScroll || !mainTabsRow) {
+    if (!mainTabsRow || !mainTabsList) {
       return;
     }
-    const overflowing = mainTabsList.scrollWidth > mainTabsRow.clientWidth + 1;
-    mainTabsRow.classList.toggle("tabs-overflowing", overflowing);
-
-    const editToggle = ensureMainTabsEditToggle();
-    if (overflowing && mainTabsOverflowActions) {
-      mainTabsOverflowActions.appendChild(editToggle);
-      if (mainTabsOverflowRow) {
-        mainTabsOverflowRow.classList.remove("is-hidden");
-      }
-    } else if (mainTabsActions) {
-      mainTabsActions.appendChild(editToggle);
-      if (mainTabsOverflowRow) {
-        mainTabsOverflowRow.classList.add("is-hidden");
-      }
+    const overflowing = DashboardUI.updateModeTabsOverflowLayout({
+      tabsRowEl: mainTabsRow,
+      tabsListEl: mainTabsList,
+      inlineActionsEl: mainTabsActions,
+      overflowActionsEl: mainTabsOverflowActions,
+      actionEl: ensureMainTabsEditToggle(),
+      fallbackActionWidth: 74
+    });
+    if (mainTabsOverflowRow) {
+      mainTabsOverflowRow.classList.toggle("is-hidden", !overflowing);
     }
   }
 
@@ -2583,11 +2464,7 @@
       }
     });
 
-    if (typeof window !== "undefined" && typeof window.requestAnimationFrame === "function") {
-      window.requestAnimationFrame(updateMainTabsOverflowLayout);
-    } else {
-      updateMainTabsOverflowLayout();
-    }
+    DashboardUI.scheduleModeTabsOverflowLayout(updateMainTabsOverflowLayout);
   }
 
   function renderGroupButtons(dashboard, group, groupIndex, colorStart) {
