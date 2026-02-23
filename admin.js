@@ -1697,19 +1697,10 @@
   }
 
   function getResolvedBuiltInThemePresets() {
-    const savedDefault = getNormalizedSavedThemePresets().find(
-      (preset) => (preset.name || "").trim().toLowerCase() === "default theme"
-    );
     return BUILT_IN_THEME_PRESETS.map((preset) => {
-      if (!savedDefault || preset.id !== "builtin-default-theme") {
-        return {
-          ...preset,
-          theme: normalizeThemePresetTheme(preset.theme)
-        };
-      }
       return {
         ...preset,
-        theme: normalizeThemePresetTheme(savedDefault.theme)
+        theme: normalizeThemePresetTheme(preset.theme)
       };
     });
   }
