@@ -710,27 +710,16 @@
       border: none !important;
       background: transparent !important;
       box-shadow: none !important;
-      border-radius: 0 !important;
+      border-radius: 0.7rem !important;
       min-height: var(--button-drop-slot-height, 0px) !important;
       height: var(--button-drop-slot-height, 0px) !important;
-      padding: 0 !important;
+      padding: 0.4rem !important;
       margin: 0 !important;
-      flex: 0 0 0 !important;
-      width: 0 !important;
-      min-width: 0 !important;
-      max-width: 0 !important;
       overflow: visible;
     }
 
     .sortable-placeholder.sortable-placeholder-grid-line.sortable-placeholder-grid-preserve-slot {
-      border-radius: 0.7rem !important;
-      min-height: 3rem !important;
-      height: auto !important;
-      padding: 0.4rem !important;
-      flex: unset !important;
-      width: auto !important;
-      min-width: 0 !important;
-      max-width: none !important;
+      /* Keep slot geometry but hide the marker until the drag leaves the origin tile. */
     }
 
     .sortable-placeholder.sortable-placeholder-grid-line::before {
