@@ -31,7 +31,7 @@
   const BUILT_IN_THEME_PRESETS = [
     {
       id: "builtin-midnight-slate",
-      name: "Midnight Slate",
+      name: "Default Theme",
       theme: {
         backgroundColor: "#0f172a",
         groupBackgroundColor: "#111827",
@@ -184,6 +184,7 @@
   const themePresetSelect = document.getElementById("themePresetSelect");
   const themePresetPreviewBtn = document.getElementById("themePresetPreviewBtn");
   const themePresetApplyBtn = document.getElementById("themePresetApplyBtn");
+  const themePresetDeleteBtn = document.getElementById("themePresetDeleteBtn");
   const themePresetNameInput = document.getElementById("themePresetNameInput");
   const themePresetSaveBtn = document.getElementById("themePresetSaveBtn");
   const enableInternalLinksCheckbox = document.getElementById("enableInternalLinksCheckbox");
@@ -1370,12 +1371,18 @@
   }
 
   function refreshThemePresetButtons() {
-    const hasSelection = Boolean(themePresetSelect && themePresetSelect.value);
+    const selectedValue = themePresetSelect && themePresetSelect.value ? themePresetSelect.value.trim() : "";
+    const hasSelection = Boolean(selectedValue);
+    const hasSavedSelection = selectedValue.startsWith("saved:");
     if (themePresetPreviewBtn) {
       themePresetPreviewBtn.disabled = !hasSelection;
     }
     if (themePresetApplyBtn) {
       themePresetApplyBtn.disabled = !hasSelection;
+    }
+    if (themePresetDeleteBtn) {
+      themePresetDeleteBtn.disabled = !hasSavedSelection;
+      themePresetDeleteBtn.title = hasSavedSelection ? "Delete selected saved theme preset" : "Select a saved preset to delete";
     }
   }
 
@@ -1534,7 +1541,41 @@
     if (themePresetSelect && themePresetSelect.dataset) {
       themePresetSelect.dataset.lastValue = `saved:${presetId}`;
     }
+    renderThemePresetOptions();
     await persistConfig(existingIndex >= 0 ? "Theme preset updated." : "Theme preset saved.");
+  }
+
+  async function deleteSelectedThemePreset() {
+    hideMessage();
+    const preset = getSelectedThemePreset();
+    if (!preset || preset.scope !== "saved") {
+      showMessage("Select a saved theme preset to delete.", "is-danger");
+      return;
+    }
+
+    const dashboard = getActiveDashboard();
+    if (!dashboard) {
+      showMessage("Dashboard not found.", "is-danger");
+      return;
+    }
+
+    const existingPresets = Array.isArray(dashboard.themePresets) ? dashboard.themePresets : [];
+    const nextPresets = existingPresets.filter((item) => {
+      const id = item && typeof item.id === "string" ? item.id.trim() : "";
+      return id !== preset.id;
+    });
+
+    if (nextPresets.length === existingPresets.length) {
+      showMessage("Theme preset not found.", "is-danger");
+      return;
+    }
+
+    dashboard.themePresets = nextPresets;
+    if (themePresetSelect && themePresetSelect.dataset) {
+      themePresetSelect.dataset.lastValue = "";
+    }
+    renderThemePresetOptions();
+    await persistConfig(`Theme preset "${preset.name}" deleted.`);
   }
 
   function isInternalLinksEnabledForDashboard(dashboard) {
@@ -2187,23 +2228,24 @@
       editHint.setAttribute("aria-hidden", "true");
       editHint.textContent = "✎";
 
+      const dragHandle = createDragHandleSpan(
+        "button-drag-handle",
+        `Drag to reorder button ${buttonEntry.name || "button"}`
+      );
+
+      preview.appendChild(dragHandle);
       preview.appendChild(iconWrap);
       preview.appendChild(label);
       preview.appendChild(editHint);
 
       const actions = document.createElement("div");
-      actions.className = "mini-actions";
-      const dragHandle = createDragHandleButton(
-        "button-drag-handle",
-        `Drag to reorder button ${buttonEntry.name || "button"}`
-      );
+      actions.className = "mini-actions compact-row";
 
       const deleteBtn = document.createElement("button");
       deleteBtn.type = "button";
       setIconActionButton(deleteBtn, "is-danger is-light", "🗑", "Delete button");
       deleteBtn.addEventListener("click", () => openDeleteButtonModal(dashboard, group, buttonEntry));
 
-      actions.appendChild(dragHandle);
       actions.appendChild(deleteBtn);
 
       card.appendChild(preview);
@@ -2384,6 +2426,10 @@
 
       const headerMain = document.createElement("div");
       headerMain.className = "group-head-main";
+      const dragHandle = createDragHandleButton(
+        "group-drag-handle",
+        `Drag to reorder group ${group.title || "group"}`
+      );
 
       const titleInput = document.createElement("input");
       titleInput.type = "text";
@@ -2417,26 +2463,21 @@
         });
       });
 
-      if (showPerGroupButtonColors) {
-        headerMain.appendChild(createGroupButtonColorInlineControl(previewDashboard, group, groupIndex));
-      }
-
       const actions = document.createElement("div");
-      actions.className = "mini-actions";
-      const dragHandle = createDragHandleButton(
-        "group-drag-handle",
-        `Drag to reorder group ${group.title || "group"}`
-      );
+      actions.className = "mini-actions compact-row";
 
       const deleteBtn = document.createElement("button");
       deleteBtn.type = "button";
       setIconActionButton(deleteBtn, "is-danger is-light", "🗑", "Delete group");
       deleteBtn.addEventListener("click", () => openDeleteGroupModal(dashboard, group));
 
-      actions.appendChild(dragHandle);
       actions.appendChild(deleteBtn);
 
-      headerMain.prepend(titleInput);
+      headerMain.appendChild(dragHandle);
+      headerMain.appendChild(titleInput);
+      if (showPerGroupButtonColors) {
+        headerMain.appendChild(createGroupButtonColorInlineControl(previewDashboard, group, groupIndex));
+      }
       header.appendChild(headerMain);
       header.appendChild(actions);
       box.appendChild(header);
@@ -2932,6 +2973,15 @@
       loadSelectedThemePreset().catch((error) => {
         console.error(error);
         showMessage("Failed to load theme preset.", "is-danger");
+      });
+    });
+  }
+
+  if (themePresetDeleteBtn) {
+    themePresetDeleteBtn.addEventListener("click", () => {
+      deleteSelectedThemePreset().catch((error) => {
+        console.error(error);
+        showMessage("Failed to delete theme preset.", "is-danger");
       });
     });
   }
