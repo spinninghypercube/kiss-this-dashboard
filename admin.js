@@ -2128,8 +2128,8 @@
 
       const dragHandle = createDragHandleSpan("tab-drag-handle", `Drag to reorder tab ${dashboard.label}`);
 
-      link.appendChild(label);
       link.appendChild(dragHandle);
+      link.appendChild(label);
 
       li.appendChild(link);
       mainTabsList.appendChild(li);
@@ -2191,7 +2191,7 @@
       col.setAttribute("data-button-id", buttonEntry.id);
 
       const card = document.createElement("div");
-      card.className = "entry-admin-card";
+      card.className = "entry-admin-card with-side-actions";
 
       const preview = document.createElement("button");
       preview.type = "button";
@@ -2239,7 +2239,7 @@
       preview.appendChild(editHint);
 
       const actions = document.createElement("div");
-      actions.className = "mini-actions compact-row";
+      actions.className = "mini-actions compact-row entry-side-actions";
 
       const deleteBtn = document.createElement("button");
       deleteBtn.type = "button";
