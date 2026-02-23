@@ -354,6 +354,33 @@
       line-height: 1;
     }
 
+    .toolbar-mode-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 0.35rem;
+      flex-wrap: wrap;
+    }
+
+    .toolbar-mode-left {
+      display: flex;
+      align-items: center;
+      min-width: 0;
+      flex: 1 1 auto;
+    }
+
+    .toolbar-mode-actions {
+      display: flex;
+      align-items: center;
+      justify-content: flex-end;
+      flex: 0 0 auto;
+      margin-left: auto;
+    }
+
+    .edit-tabs-overflow-row {
+      margin-top: 1rem;
+    }
+
     .dashboard-link-mode .mode-switch-label {
       font-size: 0.78rem;
       color: var(--dashboard-text-color, #e2e8f0);
@@ -1286,6 +1313,18 @@
         padding: 0 !important;
       }
 
+      .toolbar-mode-row {
+        padding: 4px 0;
+      }
+
+      .toolbar-mode-left {
+        flex: 1 1 auto;
+      }
+
+      .toolbar-mode-actions {
+        flex: 0 0 auto;
+      }
+
       .admin-editor-box.mt-3 {
         margin-top: 12px !important;
       }
@@ -1486,7 +1525,6 @@
         align-items: center;
         justify-content: flex-end;
         padding-left: 0;
-        padding-top: 12px;
         border-bottom: none;
       }
 
@@ -1561,6 +1599,10 @@
             </div>
             <div id="mainTabsActions" class="mode-tabs-actions"></div>
           </div>
+        </div>
+        <div id="mainTabsOverflowRow" class="toolbar-mode-row edit-tabs-overflow-row is-hidden">
+          <div class="toolbar-mode-left"></div>
+          <div id="mainTabsOverflowActions" class="toolbar-mode-actions"></div>
         </div>
 
           <div class="admin-topbar-shell mt-3 mb-5">
@@ -2084,6 +2126,6 @@
   </div>
 
   <script src="dashboard-common.js?v=1.3.20"></script>
-  <script src="admin.js?v=1.3.27"></script>
+  <script src="admin.js?v=1.3.28"></script>
 </body>
 </html>

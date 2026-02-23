@@ -161,8 +161,11 @@
 
   const mainTabsList = document.getElementById("mainTabsList");
   const mainTabsActions = document.getElementById("mainTabsActions");
+  const mainTabsOverflowRow = document.getElementById("mainTabsOverflowRow");
+  const mainTabsOverflowActions = document.getElementById("mainTabsOverflowActions");
   const mainTabsScroll = mainTabsList ? mainTabsList.closest(".mode-tabs-scroll") : null;
   const mainTabsRow = mainTabsList ? mainTabsList.closest(".mode-tabs-row") : null;
+  let mainTabsEditToggleEl = null;
   const editorPane = document.getElementById("editorPane");
   const accountPane = document.getElementById("accountPane");
   const accountLinkBtn = document.getElementById("accountLinkBtn");
@@ -618,6 +621,19 @@
     wrapper.appendChild(labelText);
     wrapper.appendChild(switchLabel);
     return wrapper;
+  }
+
+  function ensureMainTabsEditToggle() {
+    if (mainTabsEditToggleEl) {
+      return mainTabsEditToggleEl;
+    }
+    mainTabsEditToggleEl = createEditModeNavToggle(true, (checked) => {
+      if (checked) {
+        return;
+      }
+      window.location.href = "/";
+    });
+    return mainTabsEditToggleEl;
   }
 
   function updateThemeEditorToggleButtonLabel() {
@@ -2481,12 +2497,31 @@
     }
     const overflowing = mainTabsList.scrollWidth > mainTabsRow.clientWidth + 1;
     mainTabsRow.classList.toggle("tabs-overflowing", overflowing);
+
+    const editToggle = ensureMainTabsEditToggle();
+    if (overflowing && mainTabsOverflowActions) {
+      mainTabsOverflowActions.appendChild(editToggle);
+      if (mainTabsOverflowRow) {
+        mainTabsOverflowRow.classList.remove("is-hidden");
+      }
+    } else if (mainTabsActions) {
+      mainTabsActions.appendChild(editToggle);
+      if (mainTabsOverflowRow) {
+        mainTabsOverflowRow.classList.add("is-hidden");
+      }
+    }
   }
 
   function renderMainTabs() {
     mainTabsList.innerHTML = "";
     if (mainTabsActions) {
       mainTabsActions.innerHTML = "";
+    }
+    if (mainTabsOverflowActions) {
+      mainTabsOverflowActions.innerHTML = "";
+    }
+    if (mainTabsOverflowRow) {
+      mainTabsOverflowRow.classList.add("is-hidden");
     }
     ensureActiveDashboard();
 
@@ -2532,16 +2567,7 @@
     addLi.appendChild(addLink);
     mainTabsList.appendChild(addLi);
 
-    if (mainTabsActions) {
-      mainTabsActions.appendChild(
-        createEditModeNavToggle(true, (checked) => {
-          if (checked) {
-            return;
-          }
-          window.location.href = "/";
-        })
-      );
-    }
+    ensureMainTabsEditToggle();
 
     bindPointerSortable(mainTabsList, {
       itemSelector: "[data-tab-sort-item]",
