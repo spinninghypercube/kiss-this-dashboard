@@ -1324,23 +1324,44 @@
         margin-left: 0;
       }
 
+      .entry-modal-footer-right.buttons {
+        display: grid;
+        grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+        gap: 0.5rem;
+      }
+
+      .entry-modal-footer-right.buttons .button {
+        width: 100%;
+        margin: 0 !important;
+      }
+
       .admin-topbar {
         align-items: center;
         justify-content: space-between;
+        gap: 0.45rem;
+        flex-wrap: nowrap;
       }
 
       .admin-topbar-left {
         width: auto;
         flex: 1 1 auto;
         min-width: 0;
+        flex-wrap: nowrap;
+        gap: 0.4rem;
       }
 
       .admin-topbar-left .title {
+        flex: 1 1 auto;
         min-width: 0;
+        margin-right: 0.1rem !important;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        font-size: 1.3rem;
       }
 
       .admin-topbar-left .account-link-btn {
-        flex-basis: 100%;
+        flex: 0 0 auto;
       }
 
       .admin-topbar-actions {
@@ -1938,7 +1959,7 @@
     </div>
   </div>
 
-  <script src="dashboard-common.js?v=1.3.18"></script>
-  <script src="admin.js?v=1.3.18"></script>
+  <script src="dashboard-common.js?v=1.3.19"></script>
+  <script src="admin.js?v=1.3.19"></script>
 </body>
 </html>

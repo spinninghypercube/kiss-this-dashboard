@@ -33,8 +33,8 @@
       id: "builtin-default-theme",
       name: "Default Theme",
       theme: {
-        backgroundColor: "#0f172a",
-        groupBackgroundColor: "#111827",
+        backgroundColor: "#101728",
+        groupBackgroundColor: "#172644",
         textColor: "#f8fafc",
         buttonTextColor: "#0f172a",
         tabColor: "#1e293b",
