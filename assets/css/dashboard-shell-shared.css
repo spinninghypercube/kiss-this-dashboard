@@ -93,7 +93,7 @@
 }
 
 .mode-tabs-overflow-row {
-  margin-top: 1rem;
+  margin-top: 0;
 }
 
 .mode-switch {
@@ -252,7 +252,7 @@
   }
 
   .mode-tabs-overflow-row {
-    margin-top: 16px;
+    margin-top: 0;
   }
 
   .theme-preset-toolbar {
