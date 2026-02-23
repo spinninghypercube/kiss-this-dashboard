@@ -1562,7 +1562,7 @@
         {
           id: DashboardCommon.createId("dashboard"),
           label: "Dashboard 1",
-          ...buildDefaultThemeValues(),
+          ...buildDefaultThemeValues({ preferSavedDefaultTheme: true }),
           enableInternalLinks: false,
           showLinkModeToggle: true,
           themePresets: [],
@@ -1583,8 +1583,39 @@
     return config.dashboards[getDashboardIndex(activeDashboardId)];
   }
 
-  function buildDefaultThemeValues() {
-    return { ...DEFAULT_THEME_COLOR_VALUES };
+  function getNamedSavedThemePreset(presetName) {
+    const target = String(presetName || "").trim().toLowerCase();
+    if (!target) {
+      return null;
+    }
+    return getNormalizedSavedThemePresets().find((preset) => {
+      const name = preset && typeof preset.name === "string" ? preset.name.trim().toLowerCase() : "";
+      return name === target;
+    }) || null;
+  }
+
+  function getBuiltInDefaultThemePreset() {
+    return getResolvedBuiltInThemePresets().find((preset) => preset && preset.id === "builtin-default-theme") || null;
+  }
+
+  function buildDefaultThemeValues(options = {}) {
+    const preferSavedDefaultTheme = Boolean(options && options.preferSavedDefaultTheme);
+    if (preferSavedDefaultTheme) {
+      const savedDefaultTheme = getNamedSavedThemePreset("Default Theme");
+      if (savedDefaultTheme && savedDefaultTheme.theme) {
+        return { ...normalizeThemePresetTheme(savedDefaultTheme.theme) };
+      }
+    }
+
+    const builtInDefaultTheme = getBuiltInDefaultThemePreset();
+    if (builtInDefaultTheme && builtInDefaultTheme.theme) {
+      return { ...normalizeThemePresetTheme(builtInDefaultTheme.theme) };
+    }
+
+    return {
+      ...DEFAULT_THEME_COLOR_VALUES,
+      ...DEFAULT_BUTTON_COLOR_OPTIONS
+    };
   }
 
   function normalizeThemePresetTheme(theme) {
@@ -3652,7 +3683,7 @@
       const dashboard = {
         id: DashboardCommon.createId("dashboard"),
         label,
-        ...buildDefaultThemeValues(),
+        ...buildDefaultThemeValues({ preferSavedDefaultTheme: true }),
         enableInternalLinks: false,
         showLinkModeToggle: true,
         themePresets: [],
