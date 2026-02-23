@@ -565,6 +565,7 @@
     const wrapper = document.createElement("div");
     wrapper.className = "mode-switch dashboard-link-mode nav-edit-mode-toggle";
     wrapper.setAttribute("aria-label", "Edit");
+    wrapper.tabIndex = 0;
 
     const labelText = document.createElement("span");
     labelText.className = "mode-switch-label";
@@ -581,10 +582,32 @@
     const slider = document.createElement("span");
     slider.className = "ios-switch-slider";
 
+    const triggerToggle = (nextChecked) => {
+      input.checked = Boolean(nextChecked);
+      input.dispatchEvent(new Event("change", { bubbles: true }));
+    };
+
     input.addEventListener("change", (event) => {
       if (typeof onToggle === "function") {
         onToggle(Boolean(event.target && event.target.checked));
       }
+    });
+
+    wrapper.addEventListener("click", (event) => {
+      const clickedInsideSwitch =
+        event.target && typeof event.target.closest === "function" && event.target.closest(".ios-switch");
+      if (clickedInsideSwitch) {
+        return;
+      }
+      event.preventDefault();
+      triggerToggle(!input.checked);
+    });
+    wrapper.addEventListener("keydown", (event) => {
+      if (event.key !== "Enter" && event.key !== " ") {
+        return;
+      }
+      event.preventDefault();
+      triggerToggle(!input.checked);
     });
 
     switchLabel.appendChild(input);
@@ -642,6 +665,38 @@
       return null;
     }
     return container.querySelector(options.endBeforeSelector);
+  }
+
+  function findPointerSortCrossContainer(state, probeX, probeY) {
+    if (!state || !state.options || !state.options.crossContainerSelector) {
+      return null;
+    }
+
+    const { crossContainerSelector, itemSelector, handleSelector } = state.options;
+    const points =
+      typeof document.elementsFromPoint === "function"
+        ? document.elementsFromPoint(probeX, probeY)
+        : [document.elementFromPoint(probeX, probeY)];
+
+    for (const node of points) {
+      if (!node || typeof node.closest !== "function") {
+        continue;
+      }
+      const container = node.closest(crossContainerSelector);
+      if (!container) {
+        continue;
+      }
+      const containerOptions = container.__kissPointerSortableOptions;
+      if (!containerOptions) {
+        continue;
+      }
+      if (containerOptions.itemSelector !== itemSelector || containerOptions.handleSelector !== handleSelector) {
+        continue;
+      }
+      return container;
+    }
+
+    return null;
   }
 
   function updatePointerSortFloatingPosition(state, clientX, clientY) {
@@ -714,12 +769,22 @@
       return;
     }
 
-    const { container, options, placeholder } = state;
+    const { options, placeholder } = state;
+    let container = state.container;
     const itemSelector = options.itemSelector;
     const probeX =
       clientX + (typeof state.sortProbeOffsetX === "number" ? state.sortProbeOffsetX : 0);
     const probeY =
       clientY + (typeof state.sortProbeOffsetY === "number" ? state.sortProbeOffsetY : 0);
+    const crossContainer = findPointerSortCrossContainer(state, probeX, probeY);
+    if (crossContainer && crossContainer !== state.container) {
+      state.container = crossContainer;
+      container = crossContainer;
+      if (placeholder.parentNode !== container) {
+        const targetEndReference = getSortableEndReference(container, options);
+        container.insertBefore(placeholder, targetEndReference);
+      }
+    }
     const previousX = typeof state.lastRepositionX === "number" ? state.lastRepositionX : clientX;
     const previousY = typeof state.lastRepositionY === "number" ? state.lastRepositionY : clientY;
     const deltaX = clientX - previousX;
@@ -742,6 +807,10 @@
       (itemEl) => itemEl !== placeholder && !itemEl.classList.contains("sortable-placeholder")
     );
     if (!firstItem) {
+      const emptyEndReference = getSortableEndReference(container, options);
+      if (placeholder.nextElementSibling !== emptyEndReference) {
+        container.insertBefore(placeholder, emptyEndReference);
+      }
       return;
     }
 
@@ -883,20 +952,43 @@
     }
 
     repositionPointerSortPlaceholder(state, clientX, clientY);
-    const rawToIndex = getSortableChildIndex(state.container, state.placeholder, state.options.itemSelector);
-    const toIndex = rawToIndex > state.fromIndex ? rawToIndex - 1 : rawToIndex;
+    const fromContainer = state.originContainer || state.container;
+    const toContainer = state.container;
+    const sameContainer = toContainer === fromContainer;
+    const rawToIndex = getSortableChildIndex(toContainer, state.placeholder, state.options.itemSelector);
+    const toIndex = sameContainer && rawToIndex > state.fromIndex ? rawToIndex - 1 : rawToIndex;
 
-    state.container.insertBefore(state.item, state.placeholder);
-    const changed = toIndex !== state.fromIndex;
+    toContainer.insertBefore(state.item, state.placeholder);
+    const changed = sameContainer ? toIndex !== state.fromIndex : true;
     const onReorder = state.options && typeof state.options.onReorder === "function" ? state.options.onReorder : null;
+    const onMoveBetweenContainers =
+      state.options && typeof state.options.onMoveBetweenContainers === "function"
+        ? state.options.onMoveBetweenContainers
+        : null;
 
     cleanupActivePointerSort(state);
 
-    if (!changed || !onReorder) {
+    if (!changed) {
       return;
     }
 
-    Promise.resolve(onReorder(state.fromIndex, toIndex)).catch((error) => {
+    const operation = sameContainer
+      ? onReorder
+        ? onReorder(state.fromIndex, toIndex)
+        : null
+      : onMoveBetweenContainers
+        ? onMoveBetweenContainers(state.fromIndex, toIndex, {
+            fromContainer,
+            toContainer
+          })
+        : null;
+
+    if (!operation) {
+      renderEditor();
+      return;
+    }
+
+    Promise.resolve(operation).catch((error) => {
       console.error(error);
       showMessage((state.options && state.options.errorMessage) || "Failed to reorder items.", "is-danger");
       renderEditor();
@@ -993,7 +1085,8 @@
           (itemEl) => !itemEl.classList.contains("sortable-placeholder")
         );
         const fromIndex = sortableItems.indexOf(item);
-        if (fromIndex < 0 || sortableItems.length <= 1) {
+        const canCrossContainer = Boolean(currentOptions.crossContainerSelector);
+        if (fromIndex < 0 || sortableItems.length <= 0 || (!canCrossContainer && sortableItems.length <= 1)) {
           return;
         }
 
@@ -1002,6 +1095,7 @@
 
         const state = {
           container,
+          originContainer: container,
           options: currentOptions,
           handle,
           item,
@@ -1077,7 +1171,12 @@
           }
           cancelEvent.preventDefault();
           if (state.started && state.placeholder) {
-            state.container.insertBefore(state.item, state.placeholder);
+            const restoreContainer = state.originContainer || state.container;
+            if (state.placeholder.parentNode !== restoreContainer) {
+              const restoreEndReference = getSortableEndReference(restoreContainer, state.options);
+              restoreContainer.insertBefore(state.placeholder, restoreEndReference);
+            }
+            restoreContainer.insertBefore(state.item, state.placeholder);
           }
           cleanupActivePointerSort(state);
         };
@@ -2493,6 +2592,7 @@
       itemSelector: "[data-button-sort-item]",
       handleSelector: ".button-drag-handle",
       axis: "grid",
+      crossContainerSelector: "[data-button-sort-container]",
       endBeforeSelector: "[data-entry-add-slot]",
       errorMessage: "Failed to reorder buttons.",
       onReorder: async (fromIndex, toIndex) => {
@@ -2508,6 +2608,41 @@
         if (!moveArrayItem(buttons, fromIndex, toIndex)) {
           return;
         }
+        await persistConfig();
+      },
+      onMoveBetweenContainers: async (fromIndex, toIndex, context) => {
+        const activeDashboard = getActiveDashboard();
+        if (!activeDashboard) {
+          throw new Error("Dashboard not found.");
+        }
+
+        const fromGroupId =
+          context && context.fromContainer ? String(context.fromContainer.getAttribute("data-group-id") || "") : "";
+        const toGroupId =
+          context && context.toContainer ? String(context.toContainer.getAttribute("data-group-id") || "") : "";
+        const fromGroupIndex = getGroupIndex(activeDashboard, fromGroupId);
+        const toGroupIndex = getGroupIndex(activeDashboard, toGroupId);
+        if (fromGroupIndex < 0 || toGroupIndex < 0) {
+          throw new Error("Group not found.");
+        }
+
+        const fromEntries = activeDashboard.groups[fromGroupIndex].entries;
+        const toEntries = activeDashboard.groups[toGroupIndex].entries;
+        if (!Array.isArray(fromEntries) || !Array.isArray(toEntries)) {
+          throw new Error("Button list not found.");
+        }
+
+        if (fromIndex < 0 || fromIndex >= fromEntries.length) {
+          throw new Error("Button not found.");
+        }
+
+        const [movedEntry] = fromEntries.splice(fromIndex, 1);
+        if (!movedEntry) {
+          throw new Error("Button not found.");
+        }
+
+        const insertIndex = Math.max(0, Math.min(toIndex, toEntries.length));
+        toEntries.splice(insertIndex, 0, movedEntry);
         await persistConfig();
       }
     });

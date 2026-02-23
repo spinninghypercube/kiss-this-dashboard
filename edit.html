@@ -648,6 +648,18 @@
       padding: 24px;
     }
 
+    .admin-topbar-shell {
+      background: transparent !important;
+      border: none !important;
+      box-shadow: none !important;
+      padding: 0 !important;
+    }
+
+    .admin-topbar-shell > * {
+      padding-left: 0 !important;
+      padding-right: 0 !important;
+    }
+
     .group-box.group-end {
       margin-bottom: 1.5rem;
     }
@@ -1215,6 +1227,10 @@
         padding: 12px;
       }
 
+      .admin-topbar-shell {
+        padding: 0 !important;
+      }
+
       .admin-editor-box.mt-3 {
         margin-top: 12px !important;
       }
@@ -1385,10 +1401,10 @@
           <ul id="mainTabsList"></ul>
         </div>
 
-          <div class="box panel-box admin-editor-box mt-3 mb-5">
+          <div class="admin-topbar-shell mt-3 mb-5">
             <div class="admin-topbar">
               <div class="admin-topbar-left">
-                <h1 class="title is-4 mb-0">KISS this dashboard Editor</h1>
+                <h1 class="title is-4 mb-0">KISS dashboard</h1>
                 <button id="accountLinkBtn" class="button is-link is-light is-small account-link-btn" type="button">Account</button>
               </div>
               <div class="admin-topbar-actions">
@@ -1905,7 +1921,7 @@
     </div>
   </div>
 
-  <script src="dashboard-common.js?v=1.3.14"></script>
-  <script src="admin.js?v=1.3.14"></script>
+  <script src="dashboard-common.js?v=1.3.15"></script>
+  <script src="admin.js?v=1.3.15"></script>
 </body>
 </html>

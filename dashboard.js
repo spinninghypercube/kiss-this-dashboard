@@ -76,6 +76,7 @@
     const wrapper = document.createElement("div");
     wrapper.className = "mode-switch dashboard-link-mode nav-edit-mode-toggle";
     wrapper.setAttribute("aria-label", "Edit");
+    wrapper.tabIndex = 0;
 
     const labelText = document.createElement("span");
     labelText.className = "mode-switch-label";
@@ -92,10 +93,32 @@
     const slider = document.createElement("span");
     slider.className = "ios-switch-slider";
 
+    const triggerToggle = (nextChecked) => {
+      input.checked = Boolean(nextChecked);
+      input.dispatchEvent(new Event("change", { bubbles: true }));
+    };
+
     input.addEventListener("change", (event) => {
       if (typeof onToggle === "function") {
         onToggle(Boolean(event.target && event.target.checked));
       }
+    });
+
+    wrapper.addEventListener("click", (event) => {
+      const clickedInsideSwitch =
+        event.target && typeof event.target.closest === "function" && event.target.closest(".ios-switch");
+      if (clickedInsideSwitch) {
+        return;
+      }
+      event.preventDefault();
+      triggerToggle(!input.checked);
+    });
+    wrapper.addEventListener("keydown", (event) => {
+      if (event.key !== "Enter" && event.key !== " ") {
+        return;
+      }
+      event.preventDefault();
+      triggerToggle(!input.checked);
     });
 
     switchLabel.appendChild(input);
