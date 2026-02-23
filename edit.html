@@ -225,7 +225,7 @@
     .mode-tabs-row {
       display: flex;
       align-items: flex-end;
-      gap: 0.5rem;
+      gap: 0;
       flex-wrap: wrap;
       width: 100%;
     }
@@ -244,6 +244,14 @@
       display: flex;
       align-items: center;
       justify-content: flex-end;
+      padding-left: 0.5rem;
+      border-bottom: 1px solid rgba(148, 163, 184, 0.3);
+    }
+
+    .mode-tabs-actions:empty {
+      display: none;
+      padding-left: 0;
+      border-bottom: none;
     }
 
     .mode-tabs ul {
@@ -1340,47 +1348,52 @@
       }
 
       .theme-preset-toolbar {
-        flex-direction: column;
+        display: grid;
+        grid-template-columns: minmax(0, 1fr) auto;
         align-items: stretch;
         gap: 0.25rem;
       }
 
-      .theme-preset-toolbar > .control,
-      .theme-preset-toolbar > p.control {
+      .theme-preset-toolbar > * {
         margin-bottom: 0 !important;
+        margin-top: 0 !important;
+      }
+
+      .theme-preset-toolbar .control.is-expanded {
+        min-width: 0;
       }
 
       .theme-preset-toolbar .button {
-        width: 100%;
+        width: auto;
       }
 
       .theme-preset-save-row {
         display: flex;
-        flex-wrap: wrap;
+        flex-direction: column;
         align-items: stretch;
         gap: 0.25rem;
-        margin-top: 0 !important;
+        margin: 0 !important;
+      }
+
+      .theme-preset-save-row > * {
+        margin: 0 !important;
       }
 
       .theme-preset-save-row .input {
-        flex: 1 1 100%;
+        flex: 0 0 auto;
         min-width: 0;
         width: 100%;
       }
 
       .theme-preset-save-row .button {
         width: auto;
-        max-width: none;
-        margin: 0 !important;
-        padding-left: 0.6rem;
-        padding-right: 0.6rem;
+        align-self: flex-start;
         white-space: nowrap;
         line-height: 1.1;
-        text-align: center;
       }
 
       .theme-preset-editor-card {
-        gap: 0.45rem;
+        gap: 0.35rem;
       }
 
       .entry-modal-footer {
@@ -1451,6 +1464,8 @@
       .mode-tabs-row.tabs-overflowing .mode-tabs-actions {
         flex: 1 0 100%;
         justify-content: flex-end;
+        padding-left: 0;
+        border-bottom: none;
       }
 
       .title-editor {
@@ -2047,6 +2062,6 @@
   </div>
 
   <script src="dashboard-common.js?v=1.3.20"></script>
-  <script src="admin.js?v=1.3.24"></script>
+  <script src="admin.js?v=1.3.25"></script>
 </body>
 </html>

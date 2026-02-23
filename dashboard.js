@@ -8,12 +8,14 @@
   const dashboardTabsWrapEl = document.getElementById("dashboardTabsWrap");
   const dashboardTabListEl = document.getElementById("dashboardTabList");
   const dashboardTabActionsEl = document.getElementById("dashboardTabActions");
+  const dashboardTabsRowEl = dashboardTabsWrapEl ? dashboardTabsWrapEl.querySelector(".mode-tabs-row") : null;
   const toolbarModeRowEl = document.getElementById("toolbarModeRow");
   const toolbarModeActionsEl = document.getElementById("toolbarModeActions");
   const dashboardLinkModeSwitchEl = document.getElementById("dashboardLinkModeSwitch");
   const linkModeToggleEl = document.getElementById("linkModeToggle");
   const linkModeTextLabelEl = document.getElementById("linkModeTextLabel");
   const contentEl = document.getElementById("dashboardContent");
+  let dashboardEditToggleEl = null;
 
   function normalizeLinkMode(mode) {
     return mode === "internal" ? "internal" : "external";
@@ -146,6 +148,48 @@
     wrapper.appendChild(labelText);
     wrapper.appendChild(switchLabel);
     return wrapper;
+  }
+
+  function ensureDashboardEditToggle() {
+    if (dashboardEditToggleEl) {
+      return dashboardEditToggleEl;
+    }
+    dashboardEditToggleEl = createEditModeNavToggle(false, (checked) => {
+      if (!checked) {
+        return;
+      }
+      window.location.href = "/edit.html";
+    });
+    return dashboardEditToggleEl;
+  }
+
+  function updateToolbarModeRowVisibility() {
+    if (!toolbarModeRowEl) {
+      return;
+    }
+    const linkToggleVisible = Boolean(dashboardLinkModeSwitchEl && !dashboardLinkModeSwitchEl.classList.contains("is-hidden"));
+    const hasActions = Boolean(toolbarModeActionsEl && toolbarModeActionsEl.childElementCount);
+    toolbarModeRowEl.classList.toggle("is-hidden", !linkToggleVisible && !hasActions);
+  }
+
+  function updateDashboardTabsOverflowLayout() {
+    if (!dashboardTabsRowEl || !dashboardTabListEl) {
+      return;
+    }
+
+    const overflowing = dashboardTabListEl.scrollWidth > dashboardTabsRowEl.clientWidth + 1;
+    dashboardTabsRowEl.classList.toggle("tabs-overflowing", overflowing);
+
+    const editToggle = ensureDashboardEditToggle();
+    if (overflowing) {
+      if (toolbarModeActionsEl) {
+        toolbarModeActionsEl.appendChild(editToggle);
+      }
+    } else if (dashboardTabActionsEl) {
+      dashboardTabActionsEl.appendChild(editToggle);
+    }
+
+    updateToolbarModeRowVisibility();
   }
 
   function getIconSource(buttonEntry) {
@@ -301,19 +345,16 @@
       });
     }
 
-    if (toolbarModeActionsEl) {
-      toolbarModeActionsEl.appendChild(
-        createEditModeNavToggle(false, (checked) => {
-          if (!checked) {
-            return;
-          }
-          window.location.href = "/edit.html";
-        })
-      );
-    }
+    ensureDashboardEditToggle();
 
     if (dashboardTabsWrapEl) {
       dashboardTabsWrapEl.classList.remove("is-hidden");
+    }
+
+    if (typeof window !== "undefined" && typeof window.requestAnimationFrame === "function") {
+      window.requestAnimationFrame(updateDashboardTabsOverflowLayout);
+    } else {
+      updateDashboardTabsOverflowLayout();
     }
   }
 
@@ -324,10 +365,7 @@
     if (dashboardLinkModeSwitchEl) {
       dashboardLinkModeSwitchEl.classList.toggle("is-hidden", !showToggle);
     }
-    if (toolbarModeRowEl) {
-      const hasActions = Boolean(toolbarModeActionsEl && toolbarModeActionsEl.childElementCount);
-      toolbarModeRowEl.classList.toggle("is-hidden", !showToggle && !hasActions);
-    }
+    updateToolbarModeRowVisibility();
     const isInternal = currentLinkMode === "internal";
     linkModeToggleEl.checked = isInternal;
     if (linkModeTextLabelEl) {
@@ -451,6 +489,12 @@
   linkModeToggleEl.addEventListener("change", () => {
     setLinkMode(linkModeToggleEl.checked ? "internal" : "external");
   });
+
+  if (typeof window !== "undefined") {
+    window.addEventListener("resize", () => {
+      updateDashboardTabsOverflowLayout();
+    });
+  }
 
   async function init() {
     if (redirectDashboardFallbackPaths()) {

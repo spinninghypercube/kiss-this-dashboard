@@ -2479,7 +2479,7 @@
     if (!mainTabsScroll || !mainTabsRow) {
       return;
     }
-    const overflowing = mainTabsScroll.scrollWidth > mainTabsScroll.clientWidth + 1;
+    const overflowing = mainTabsList.scrollWidth > mainTabsRow.clientWidth + 1;
     mainTabsRow.classList.toggle("tabs-overflowing", overflowing);
   }
 
