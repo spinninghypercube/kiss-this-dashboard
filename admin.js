@@ -692,11 +692,13 @@
     let top = 0;
     let height = 0;
 
+    const verticalOverlap =
+      prevRect && nextRect ? Math.min(prevRect.bottom, nextRect.bottom) - Math.max(prevRect.top, nextRect.top) : 0;
+    const horizontalGap = prevRect && nextRect ? nextRect.left - prevRect.right : 0;
     const sameRowPair =
-      prevRect &&
-      nextRect &&
-      Math.abs((prevRect.top + prevRect.height / 2) - (nextRect.top + nextRect.height / 2)) <=
-        Math.max(8, Math.min(prevRect.height, nextRect.height) * 0.35);
+      Boolean(prevRect && nextRect) &&
+      verticalOverlap >= Math.max(8, Math.min(prevRect.height, nextRect.height) * 0.4) &&
+      horizontalGap >= -2;
 
     if (sameRowPair) {
       x = (prevRect.right + nextRect.left) / 2;
