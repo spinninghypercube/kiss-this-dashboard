@@ -598,7 +598,7 @@
       itemEl && typeof itemEl.querySelector === "function" ? itemEl.querySelector(".entry-preview-button") : null;
     const lineTop = previewButton ? Math.max(0, Math.round(Number(previewButton.offsetTop) || 0)) : 0;
     const lineHeight = previewButton ? Math.max(24, Math.round(Number(previewButton.offsetHeight) || 0)) : Math.ceil(rect.height);
-    slot.className = `${itemEl && itemEl.className ? itemEl.className : "column"} sortable-placeholder sortable-placeholder-grid-line sortable-placeholder-grid-preserve-slot`;
+    slot.className = `${itemEl && itemEl.className ? itemEl.className : "column"} sortable-placeholder sortable-placeholder-grid-line sortable-placeholder-grid-internal sortable-placeholder-grid-preserve-slot`;
     slot.style.minHeight = `${Math.ceil(rect.height)}px`;
     slot.style.height = `${Math.ceil(rect.height)}px`;
     slot.style.margin = "0";
@@ -608,6 +608,108 @@
     slot.setAttribute("data-marker-side", "left");
     slot.setAttribute("aria-hidden", "true");
     return slot;
+  }
+
+  function ensureButtonSortBoundaryOverlay(state) {
+    if (!state) {
+      return null;
+    }
+    if (state.buttonBoundaryOverlay && state.buttonBoundaryOverlay.isConnected) {
+      return state.buttonBoundaryOverlay;
+    }
+    const overlay = document.createElement("div");
+    overlay.className = "sortable-button-boundary-overlay";
+    overlay.setAttribute("aria-hidden", "true");
+    overlay.style.display = "none";
+    document.body.appendChild(overlay);
+    state.buttonBoundaryOverlay = overlay;
+    return overlay;
+  }
+
+  function cleanupButtonSortBoundaryOverlay(state) {
+    if (!state || !state.buttonBoundaryOverlay) {
+      return;
+    }
+    if (state.buttonBoundaryOverlay.parentNode) {
+      state.buttonBoundaryOverlay.remove();
+    }
+    state.buttonBoundaryOverlay = null;
+  }
+
+  function readButtonSortPlaceholderLineNumber(placeholder, name, fallback) {
+    if (!placeholder || !placeholder.style || typeof placeholder.style.getPropertyValue !== "function") {
+      return fallback;
+    }
+    const raw = String(placeholder.style.getPropertyValue(name) || "").trim();
+    const parsed = Number.parseFloat(raw);
+    return Number.isFinite(parsed) ? parsed : fallback;
+  }
+
+  function updateButtonSortBoundaryOverlay(state) {
+    if (!state || !state.started || !state.placeholder) {
+      cleanupButtonSortBoundaryOverlay(state);
+      return;
+    }
+    const placeholder = state.placeholder;
+    if (
+      !placeholder.classList ||
+      !placeholder.classList.contains("sortable-placeholder-grid-line") ||
+      !placeholder.classList.contains("sortable-placeholder-grid-internal")
+    ) {
+      cleanupButtonSortBoundaryOverlay(state);
+      return;
+    }
+
+    const overlay = ensureButtonSortBoundaryOverlay(state);
+    if (!overlay) {
+      return;
+    }
+
+    if (
+      !state.gridOriginSlotExited ||
+      placeholder.classList.contains("sortable-placeholder-grid-preserve-slot") ||
+      !placeholder.isConnected
+    ) {
+      overlay.style.display = "none";
+      return;
+    }
+
+    const itemSelector =
+      state.options && typeof state.options.itemSelector === "string" ? state.options.itemSelector : "[data-button-sort-item]";
+    const markerSide = placeholder.getAttribute("data-marker-side") === "right" ? "right" : "left";
+    const referenceItem = getAdjacentSortableSibling(placeholder, itemSelector, markerSide === "left" ? -1 : 1);
+    const referenceButton =
+      referenceItem && typeof referenceItem.querySelector === "function"
+        ? referenceItem.querySelector(".entry-preview-button")
+        : null;
+
+    let x = 0;
+    let top = 0;
+    let height = 0;
+
+    if (referenceButton && typeof referenceButton.getBoundingClientRect === "function") {
+      const refRect = referenceButton.getBoundingClientRect();
+      x = markerSide === "left" ? refRect.right : refRect.left;
+      top = refRect.top;
+      height = refRect.height;
+    } else {
+      const slotRect = placeholder.getBoundingClientRect();
+      const lineTop = readButtonSortPlaceholderLineNumber(placeholder, "--button-drop-line-top", 0);
+      const lineHeight = readButtonSortPlaceholderLineNumber(placeholder, "--button-drop-line-height", slotRect.height);
+      x = markerSide === "right" ? slotRect.right : slotRect.left;
+      top = slotRect.top + lineTop;
+      height = lineHeight;
+    }
+
+    if (!Number.isFinite(x) || !Number.isFinite(top) || !Number.isFinite(height) || height <= 0) {
+      overlay.style.display = "none";
+      return;
+    }
+
+    overlay.style.display = "";
+    overlay.style.left = `${Math.round(x)}px`;
+    overlay.style.top = `${Math.round(top)}px`;
+    overlay.style.height = `${Math.max(24, Math.round(height))}px`;
   }
 
   function configureGroupSortFloatingPreview(state) {
@@ -804,6 +906,17 @@
     placeholder.setAttribute("data-marker-side", normalized);
   }
 
+  function updatePointerSortDragFeedback(state) {
+    if (!state || !state.options || typeof state.options.updateDragFeedback !== "function") {
+      return;
+    }
+    try {
+      state.options.updateDragFeedback(state);
+    } catch (error) {
+      console.warn("Failed to update drag feedback", error);
+    }
+  }
+
   function resolvePointerSortAutoScrollContainer(state) {
     if (!state || !state.options) {
       return null;
@@ -880,6 +993,7 @@
 
     if (scrolled && Number.isFinite(state.lastPointerClientX) && Number.isFinite(state.lastPointerClientY)) {
       repositionPointerSortPlaceholder(state, state.lastPointerClientX, state.lastPointerClientY);
+      updatePointerSortDragFeedback(state);
     }
 
     if (typeof window !== "undefined" && typeof window.requestAnimationFrame === "function") {
@@ -1193,6 +1307,14 @@
       }
     }
 
+    if (state.options && typeof state.options.cleanupDragFeedback === "function") {
+      try {
+        state.options.cleanupDragFeedback(state);
+      } catch (error) {
+        console.warn("Failed to clean up drag feedback", error);
+      }
+    }
+
     if (state.placeholder && state.placeholder.parentNode) {
       state.placeholder.remove();
     }
@@ -1334,6 +1456,7 @@
     state.lastPointerClientX = event.clientX;
     state.lastPointerClientY = event.clientY;
     updatePointerSortFloatingPosition(state, event.clientX, event.clientY);
+    updatePointerSortDragFeedback(state);
   }
 
   function bindPointerSortable(container, options) {
@@ -1432,6 +1555,7 @@
           updatePointerSortFloatingPosition(state, moveEvent.clientX, moveEvent.clientY);
           if (state.skipNextPlaceholderReposition) {
             state.skipNextPlaceholderReposition = false;
+            updatePointerSortDragFeedback(state);
             return;
           }
           if (
@@ -1453,6 +1577,7 @@
               probeY >= r.top + inset &&
               probeY <= r.bottom - inset;
             if (stillInsideOriginSlot) {
+              updatePointerSortDragFeedback(state);
               return;
             }
             state.gridOriginSlotExited = true;
@@ -1465,6 +1590,7 @@
             }
           }
           repositionPointerSortPlaceholder(state, moveEvent.clientX, moveEvent.clientY);
+          updatePointerSortDragFeedback(state);
         };
 
         state.onPointerUp = (upEvent) => {
@@ -2905,6 +3031,8 @@
           sortRectSelector: ".entry-preview-button",
           createPlaceholder: createButtonSortPlaceholder,
           configureFloatingPreview: configureButtonSortFloatingPreview,
+          updateDragFeedback: updateButtonSortBoundaryOverlay,
+          cleanupDragFeedback: cleanupButtonSortBoundaryOverlay,
           autoScroll: true,
           autoScrollAxis: "y",
           autoScrollEdge: 92,
