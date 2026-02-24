@@ -2,15 +2,13 @@
 
 Self-hosted dashboard with a shared web-based admin editor, per-tab theming, and embedded icon support.
 
-<img width="1491" height="951" alt="Screenshot from 2026-02-23 00-24-16" src="https://github.com/user-attachments/assets/9ce32591-78b1-444f-ae69-bf5ebdde0358" />
+<img width="430" height="840" alt="image" src="https://github.com/user-attachments/assets/144a5598-0fa5-42d4-b4e5-657938dbbc2c" />
 
-<img width="1493" height="953" alt="Screenshot from 2026-02-23 00-25-21" src="https://github.com/user-attachments/assets/d4a06fd5-36af-40ac-90ef-125bdcdf3f38" />
+<img width="430" height="840" alt="image" src="https://github.com/user-attachments/assets/ffaca904-8216-482e-828c-2874761dbcfd" />
 
-<img width="1494" height="953" alt="Screenshot from 2026-02-23 00-26-16" src="https://github.com/user-attachments/assets/c08809dc-4f1d-49cc-9952-702c18a1818b" />
+<img width="1717" height="1320" alt="image" src="https://github.com/user-attachments/assets/dd011d34-da21-4252-8f83-6427fd951e8f" />
 
-<img width="431" height="887" alt="Screenshot from 2026-02-23 00-27-21" src="https://github.com/user-attachments/assets/1163f1d6-6966-4290-a1aa-644bb4ece851" />
-
-<img width="431" height="885" alt="Screenshot from 2026-02-23 00-27-59" src="https://github.com/user-attachments/assets/30a75978-7e76-497e-8169-bb92cddd255a" />
+<img width="1716" height="1320" alt="image" src="https://github.com/user-attachments/assets/3d77beee-5de2-40c4-b71a-ad101f91c917" />
 
 
 Important:
