@@ -677,19 +677,42 @@
     const itemSelector =
       state.options && typeof state.options.itemSelector === "string" ? state.options.itemSelector : "[data-button-sort-item]";
     const markerSide = placeholder.getAttribute("data-marker-side") === "right" ? "right" : "left";
-    const referenceItem = getAdjacentSortableSibling(placeholder, itemSelector, markerSide === "left" ? -1 : 1);
-    const referenceButton =
-      referenceItem && typeof referenceItem.querySelector === "function"
-        ? referenceItem.querySelector(".entry-preview-button")
-        : null;
+    const prevItem = getAdjacentSortableSibling(placeholder, itemSelector, -1);
+    const nextItem = getAdjacentSortableSibling(placeholder, itemSelector, 1);
+    const prevButton =
+      prevItem && typeof prevItem.querySelector === "function" ? prevItem.querySelector(".entry-preview-button") : null;
+    const nextButton =
+      nextItem && typeof nextItem.querySelector === "function" ? nextItem.querySelector(".entry-preview-button") : null;
+    const prevRect =
+      prevButton && typeof prevButton.getBoundingClientRect === "function" ? prevButton.getBoundingClientRect() : null;
+    const nextRect =
+      nextButton && typeof nextButton.getBoundingClientRect === "function" ? nextButton.getBoundingClientRect() : null;
 
     let x = 0;
     let top = 0;
     let height = 0;
 
-    if (referenceButton && typeof referenceButton.getBoundingClientRect === "function") {
-      const refRect = referenceButton.getBoundingClientRect();
-      x = markerSide === "left" ? refRect.right : refRect.left;
+    const sameRowPair =
+      prevRect &&
+      nextRect &&
+      Math.abs((prevRect.top + prevRect.height / 2) - (nextRect.top + nextRect.height / 2)) <=
+        Math.max(8, Math.min(prevRect.height, nextRect.height) * 0.35);
+
+    if (sameRowPair) {
+      x = (prevRect.right + nextRect.left) / 2;
+      top = Math.min(prevRect.top, nextRect.top);
+      height = Math.max(prevRect.bottom, nextRect.bottom) - top;
+    } else if (markerSide === "left" && prevRect) {
+      x = prevRect.right;
+      top = prevRect.top;
+      height = prevRect.height;
+    } else if (markerSide === "right" && nextRect) {
+      x = nextRect.left;
+      top = nextRect.top;
+      height = nextRect.height;
+    } else if (prevRect || nextRect) {
+      const refRect = prevRect || nextRect;
+      x = markerSide === "right" ? refRect.left : refRect.right;
       top = refRect.top;
       height = refRect.height;
     } else {
