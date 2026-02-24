@@ -1,6 +1,17 @@
 # KISS this dashboard
 
-Self-hosted dashboard with a shared web-based admin editor, per-tab theming, and embedded icon support.
+KISS this dashboard is a self-hosted homepage/dashboard for homelabs and personal start pages, with a built-in web editor so you can design the layout directly in the browser.
+
+## Why This One (USPs)
+
+- Keep it stupid simple: no heavy stack, no cloud dependency, no over-engineered setup.
+- WYSIWYG layout and theming: edit the actual dashboard UI instead of filling in config files blind.
+- Mobile friendly: dashboard and editor both work well on phones/tablets.
+- Drag-and-drop editing: reorder tabs, groups, and buttons visually.
+- Per-tab theming + reusable theme presets.
+- Multiple icon library integrations plus embedded/custom icon support.
+- Self-hosted auth and local persistence (no external account required).
+- Flexible deploy options: Docker Compose or plain systemd on Debian/Ubuntu.
 
 <img width="1491" height="951" alt="Screenshot from 2026-02-23 00-24-16" src="https://github.com/user-attachments/assets/9ce32591-78b1-444f-ae69-bf5ebdde0358" />
 
@@ -17,8 +28,6 @@ Important:
 - On first visit, the app prompts you to create the first admin username/password (no shared default credentials).
 - If you import an older users file with a legacy default account, the admin UI can still force a password change before edits.
 - Reverse proxy setup is intentionally not included in this repo. Bring your own if you need HTTPS/public access.
-
-Choose one deployment method below (Docker Compose or systemd). Docker Compose is optional.
 
 ## Quick Start (Docker Compose, Optional)
 
