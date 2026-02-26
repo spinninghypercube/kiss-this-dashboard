@@ -61,7 +61,7 @@ Optional flags (append after `bash -s --`):
 - `--dir ~/kiss-this-dashboard-docker`
 - `--branch main`
 
-## Quick Start (Debian/Ubuntu, systemd)
+## Manual Install (Debian/Ubuntu, systemd)
 
 Requirements:
 - `go` (builds the backend binary)
@@ -93,7 +93,7 @@ If you want the app behind nginx on port 80/443:
 - use `ops/nginx/kiss-this-dashboard.conf`
 - it proxies all requests to the Go backend (`127.0.0.1:8788`)
 
-## Quick Start (Docker Compose)
+## Manual Install (Docker Compose)
 
 Requirements:
 - `docker`
