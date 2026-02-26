@@ -38,6 +38,7 @@ curl -fsSL https://raw.githubusercontent.com/spinninghypercube/kiss-this-dashboa
 
 Optional flags (append after `sudo bash -s --`):
 - `--port 8788`
+- `--bind 127.0.0.1` (recommended for same-host reverse proxy setups)
 - `--install-dir /opt/kiss-this-dashboard`
 - `--data-dir /var/lib/kiss-this-dashboard`
 - `--branch main`
@@ -46,6 +47,12 @@ Example:
 
 ```bash
 curl -fsSL https://raw.githubusercontent.com/spinninghypercube/kiss-this-dashboard/main/ops/bootstrap.sh | sudo bash -s -- --port 8788
+```
+
+Same-host reverse proxy example (nginx/Caddy on the same machine):
+
+```bash
+curl -fsSL https://raw.githubusercontent.com/spinninghypercube/kiss-this-dashboard/main/ops/bootstrap.sh | sudo bash -s -- --bind 127.0.0.1
 ```
 
 ### Docker (Docker Compose)
@@ -75,6 +82,7 @@ Run from the cloned repo:
    - `sudo bash ops/preflight.sh --port 8788`
 2. Install:
    - `sudo bash ops/install.sh`
+   - Same-host reverse proxy (local-only backend): `sudo bash ops/install.sh --bind 127.0.0.1`
 3. Open:
    - Dashboard: `http://127.0.0.1:8788/`
    - Editor: `http://127.0.0.1:8788/edit`
@@ -92,6 +100,8 @@ What `ops/install.sh` does:
 If you want the app behind nginx on port 80/443:
 - use `ops/nginx/kiss-this-dashboard.conf`
 - it proxies all requests to the Go backend (`127.0.0.1:8788`)
+- For same-host reverse proxy installs, prefer a local-only backend bind (`--bind 127.0.0.1`).
+- If your reverse proxy runs on a different host/container, keep the default bind (`0.0.0.0`) or use host firewall rules.
 
 ## Manual Install (Docker Compose)
 
@@ -149,7 +159,7 @@ Docker one-shot (Docker Compose install):
 - `curl -fsSL https://raw.githubusercontent.com/spinninghypercube/kiss-this-dashboard/main/ops/bootstrap-docker.sh | bash`
 
 Notes:
-- Reuse the same flags you used originally (`--port`, `--install-dir`, `--data-dir`, or `--dir`).
+- Reuse the same flags you used originally (`--port`, `--bind`, `--install-dir`, `--data-dir`, or `--dir`).
 - Reuse the same user/root context you used originally, especially for the Docker one-shot install.
 - If you installed from a local git checkout instead of the one-shot installers, use the manual upgrade flow below.
 

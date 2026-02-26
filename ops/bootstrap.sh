@@ -4,6 +4,7 @@ set -euo pipefail
 REPO_URL="https://github.com/spinninghypercube/kiss-this-dashboard.git"
 BRANCH="main"
 PORT="8788"
+BIND_ADDR="0.0.0.0"
 INSTALL_DIR="/opt/kiss-this-dashboard"
 DATA_DIR="/var/lib/kiss-this-dashboard"
 GO_MIN_VERSION="1.24.0"
@@ -18,6 +19,7 @@ Usage: curl -fsSL <this script> | sudo bash [-s -- [options]]
 
 Options:
   --port PORT             App port (default: 8788)
+  --bind ADDR             App bind address (default: 0.0.0.0; use 127.0.0.1 for same-host reverse proxy)
   --install-dir DIR       Install root for app files (default: /opt/kiss-this-dashboard)
   --data-dir DIR          Persistent data dir (default: /var/lib/kiss-this-dashboard)
   --branch NAME           Git branch or tag to install (default: main)
@@ -29,6 +31,7 @@ USAGE
 while [[ $# -gt 0 ]]; do
   case "$1" in
     --port) PORT="${2:-}"; shift 2 ;;
+    --bind) BIND_ADDR="${2:-}"; shift 2 ;;
     --install-dir) INSTALL_DIR="${2:-}"; shift 2 ;;
     --data-dir) DATA_DIR="${2:-}"; shift 2 ;;
     --branch) BRANCH="${2:-}"; shift 2 ;;
@@ -123,8 +126,30 @@ print_urls() {
   ip="${ip:-127.0.0.1}"
   echo
   echo "One Shot Install complete."
-  echo "Open:  http://${ip}:${PORT}/"
-  echo "Edit:  http://${ip}:${PORT}/edit"
+  if [[ "$BIND_ADDR" == "127.0.0.1" || "$BIND_ADDR" == "::1" || "$BIND_ADDR" == "localhost" ]]; then
+    echo "Backend bind: ${BIND_ADDR} (local-only)"
+    echo "Open via your reverse proxy URL."
+    echo "Local app:  http://127.0.0.1:${PORT}/"
+    echo "Local edit: http://127.0.0.1:${PORT}/edit"
+  else
+    echo "Open:  http://${ip}:${PORT}/"
+    echo "Edit:  http://${ip}:${PORT}/edit"
+  fi
+}
+
+apply_bind_override_if_needed() {
+  local env_file="/etc/default/kiss-this-dashboard-api"
+  if [[ ! -f "$env_file" ]]; then
+    return
+  fi
+  if grep -q '^DASH_BIND=' "$env_file"; then
+    sed -i "s|^DASH_BIND=.*|DASH_BIND=${BIND_ADDR}|" "$env_file"
+  else
+    printf '\nDASH_BIND=%s\n' "$BIND_ADDR" >> "$env_file"
+  fi
+  if command -v systemctl >/dev/null 2>&1 && [[ -d /run/systemd/system ]]; then
+    systemctl restart kiss-this-dashboard-api || true
+  fi
 }
 
 export DEBIAN_FRONTEND=noninteractive
@@ -138,6 +163,7 @@ install_go_if_needed
 echo "[bootstrap] Go version: $(go version)"
 echo "[bootstrap] Node version: $(node --version)"
 echo "[bootstrap] npm version: $(npm --version)"
+echo "[bootstrap] Bind address: ${BIND_ADDR}"
 
 tmp_root="$(mktemp -d)"
 trap 'rm -rf "$tmp_root"' EXIT
@@ -150,6 +176,7 @@ cd "$repo_dir"
 echo "[bootstrap] Running preflight"
 bash ops/preflight.sh --port "$PORT"
 echo "[bootstrap] Running installer"
-bash ops/install.sh --port "$PORT" --install-dir "$INSTALL_DIR" --data-dir "$DATA_DIR"
+bash ops/install.sh --port "$PORT" --bind "$BIND_ADDR" --install-dir "$INSTALL_DIR" --data-dir "$DATA_DIR"
+apply_bind_override_if_needed
 
 print_urls
