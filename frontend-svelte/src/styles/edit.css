@@ -1,12 +1,4 @@
-<!DOCTYPE html>
-<html lang="nl">
-<head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>KISS dashboard</title>
-  <link rel="stylesheet" href="assets/css/bulma.min.css" />
-  <style>
-    :root {
+:root {
       --shell-max-width: 1150px;
       --bg-a: #020617;
       --bg-b: #0f172a;
@@ -226,7 +218,6 @@
       display: flex;
       align-items: flex-end;
       gap: 0;
-      flex-wrap: wrap;
       width: 100%;
     }
 
@@ -236,7 +227,9 @@
       overflow-x: auto;
       overflow-y: hidden;
       -webkit-overflow-scrolling: touch;
-      scrollbar-width: thin;
+      scrollbar-width: none;
+      display: flex;
+      align-items: flex-end;
     }
 
     .mode-tabs-actions {
@@ -367,7 +360,7 @@
     .toolbar-mode-row {
       display: flex;
       align-items: center;
-      justify-content: space-between;
+      justify-content: flex-end;
       gap: 0.35rem;
       flex-wrap: wrap;
     }
@@ -1343,7 +1336,7 @@
       gap: 0.45rem;
       max-height: 15rem;
       overflow: auto;
-      scrollbar-width: thin;
+      scrollbar-width: none;
       scrollbar-color: rgba(147, 197, 253, 0.55) rgba(30, 41, 59, 0.38);
     }
 
@@ -1556,6 +1549,7 @@
 
       .toolbar-mode-row {
         padding: 4px 0;
+        justify-content: flex-end;
       }
 
       .toolbar-mode-left {
@@ -1565,6 +1559,7 @@
       .toolbar-mode-actions {
         flex: 0 0 auto;
       }
+
 
       .admin-editor-box.mt-3 {
         margin-top: 12px !important;
@@ -1742,7 +1737,7 @@
       }
 
       .mode-tabs-scroll {
-        flex: 1 1 auto;
+        flex: 1 1 0;
       }
 
       .mode-tabs-actions {
@@ -1750,6 +1745,7 @@
         align-self: stretch;
         align-items: center;
         justify-content: flex-end;
+        border-bottom: 1px solid rgba(148, 163, 184, 0.3);
       }
 
       .mode-tabs-row.tabs-overflowing {
@@ -1781,596 +1777,23 @@
       .icon-search-controls {
         flex-direction: column;
       }
+
+    /* Button drag-and-drop styling */
+    div[data-button-sort-item].sortable-ghost .entry-preview-button {
+      box-shadow: inset 0 0 0 5px rgba(0, 0, 0, 0.6);
     }
-  </style>
-  <link rel="stylesheet" href="assets/css/dashboard-shell-shared.css?v=2.0.0" />
-</head>
-<body>
-  <section class="section">
-    <div class="admin-shell">
-      <div id="messageBox" class="notification is-hidden"></div>
 
-      <div id="loginView" class="box login-box">
-        <h1 id="loginViewTitle" class="title is-4 mb-2">KISS this dashboard Admin</h1>
-        <p id="loginViewIntro" class="muted mb-4">Log in to manage your dashboard.</p>
+    div[data-button-sort-item].sortable-drag {
+      opacity: 0 !important;
+    }
 
-        <form id="loginForm">
-          <div class="field">
-            <label class="label">Username</label>
-            <div class="control">
-              <input id="loginUsername" class="input" type="text" placeholder="admin" required />
-            </div>
-          </div>
-          <div class="field">
-            <label class="label">Password</label>
-            <div class="control">
-              <input id="loginPassword" class="input" type="password" placeholder="••••••" required />
-            </div>
-          </div>
-          <button class="button is-link" type="submit">Log In</button>
-        </form>
+    /* Tab drag-and-drop styling */
+    li.tab-sort-item.sortable-ghost a {
+      box-shadow: inset 0 0 0 3px rgba(0, 0, 0, 0.6);
+    }
 
-        <form id="bootstrapForm" class="is-hidden">
-          <div class="field">
-            <label class="label">Create Username</label>
-            <div class="control">
-              <input id="bootstrapUsername" class="input" type="text" minlength="3" maxlength="40" required />
-            </div>
-          </div>
-          <div class="field">
-            <label class="label">Create Password</label>
-            <div class="control">
-              <input id="bootstrapPassword" class="input" type="password" minlength="4" required />
-            </div>
-          </div>
-          <div class="field">
-            <label class="label">Confirm Password</label>
-            <div class="control">
-              <input id="bootstrapConfirmPassword" class="input" type="password" minlength="4" required />
-            </div>
-          </div>
-          <button class="button is-link" type="submit">Create Admin Account</button>
-        </form>
-      </div>
+    li.tab-sort-item.sortable-drag {
+      opacity: 0 !important;
+    }
 
-      <div id="adminView" class="is-hidden">
-        <div class="toolbar mode-tabs-toolbar">
-          <div class="tabs is-boxed mode-tabs">
-            <div class="mode-tabs-row">
-              <div class="mode-tabs-scroll">
-                <ul id="mainTabsList"></ul>
-              </div>
-              <div id="mainTabsActions" class="mode-tabs-actions"></div>
-            </div>
-          </div>
-          <div id="mainTabsOverflowRow" class="toolbar-mode-row mode-tabs-overflow-row is-hidden">
-            <div class="toolbar-mode-left"></div>
-            <div id="mainTabsOverflowActions" class="toolbar-mode-actions"></div>
-          </div>
-        </div>
-
-          <div class="admin-topbar-shell mt-3 mb-5">
-            <div class="admin-topbar">
-              <div class="admin-topbar-left">
-                <h1 class="title is-4 mb-0">KISS dashboard</h1>
-                <button id="accountLinkBtn" class="button is-link is-light is-small account-link-btn" type="button">Account</button>
-              </div>
-              <div class="admin-topbar-actions">
-                <button id="logoutBtn" class="button is-danger is-light is-small" type="button">Log Out</button>
-              </div>
-            </div>
-            <div id="firstRunSetupNotice" class="notification is-warning is-light mt-3 mb-0 is-hidden">
-              First-time setup required: change the account password before editing or saving dashboard settings.
-            </div>
-          </div>
-
-        <div id="editorPane">
-          <div class="box panel-box dashboard-settings-box">
-              <div class="settings-head">
-              <h2 class="title is-5">Tab Settings</h2>
-              <div class="settings-actions">
-                <button id="liveColorEditorToggleBtn" class="button is-link is-light is-small" type="button">Show theme editor</button>
-                <button id="deleteDashboardBtn" class="button is-danger is-light is-small delete-dashboard-btn" type="button">Delete tab</button>
-              </div>
-            </div>
-            <div class="field mb-3">
-              <label class="label">Tab Title</label>
-              <div class="title-editor">
-                <input id="pageTitleInput" class="input" type="text" maxlength="80" placeholder="Dashboard 1" />
-              </div>
-            </div>
-            <div class="field mb-3">
-              <label class="checkbox">
-                <input id="enableInternalLinksCheckbox" type="checkbox" />
-                Use internal and external links
-              </label>
-            </div>
-            <div id="liveColorEditorPanel" class="live-color-editor-panel is-hidden">
-              <div class="live-color-editor-head">
-                <h3 class="title is-5">Theme Editor</h3>
-                <button id="resetThemeColorsBtn" class="button is-link is-light is-small" type="button">Reset Colors</button>
-              </div>
-              <div class="columns is-multiline">
-              <div class="column is-12">
-                <div class="field mb-0">
-                  <label class="label" for="themePresetSelect">Theme Presets</label>
-                  <div class="theme-preset-editor-card">
-                    <div class="theme-preset-toolbar">
-                      <p class="control is-expanded">
-                        <span class="select is-fullwidth">
-                          <select id="themePresetSelect">
-                            <option value="">-Select a theme-</option>
-                          </select>
-                        </span>
-                      </p>
-                      <p id="themePresetDeleteControl" class="control is-hidden">
-                        <button id="themePresetDeleteBtn" class="button is-danger is-light" type="button">Delete</button>
-                      </p>
-                    </div>
-                    <div class="theme-preset-save-row">
-                      <input
-                        id="themePresetNameInput"
-                        class="input"
-                        type="text"
-                        maxlength="60"
-                        placeholder="Save current theme as preset"
-                      />
-                      <button id="themePresetSaveBtn" class="button is-link" type="button">Save Current Theme</button>
-                    </div>
-                    <p class="help mb-0">
-                      Built-in presets are available for every tab. Saved themes are available across all tabs.
-                    </p>
-                  </div>
-                </div>
-              </div>
-              <div class="column is-12">
-                <div class="field mb-0">
-                  <label class="label" for="buttonColorModeSelect">Button Colors</label>
-                  <div class="button-color-editor-card">
-                    <div class="field">
-                      <div class="control">
-                        <div class="select is-fullwidth">
-                          <select id="buttonColorModeSelect">
-                            <option value="cycle-custom">Color cycle</option>
-                            <option value="solid-all">Solid color (all buttons)</option>
-                            <option value="solid-per-group">Solid colors per group</option>
-                          </select>
-                        </div>
-                      </div>
-                    </div>
-                    <div id="buttonColorCycleCustomFields" class="is-hidden">
-                      <div class="button-color-mode-grid">
-                        <div class="field mb-0">
-                          <label class="label" for="buttonCycleHueStepInput">Hue Step</label>
-                          <input id="buttonCycleHueStepInput" class="input button-color-number-input" type="number" min="1" max="180" step="1" />
-                        </div>
-                        <div class="field mb-0">
-                          <label class="label" for="buttonCycleSaturationInput">Saturation (%)</label>
-                          <input id="buttonCycleSaturationInput" class="input button-color-number-input" type="number" min="0" max="100" step="1" />
-                        </div>
-                        <div class="field mb-0">
-                          <label class="label" for="buttonCycleLightnessInput">Lightness (%)</label>
-                          <input id="buttonCycleLightnessInput" class="input button-color-number-input" type="number" min="0" max="100" step="1" />
-                        </div>
-                      </div>
-                    </div>
-                    <div id="buttonColorSolidAllFields" class="is-hidden mt-3">
-                      <div class="field mb-0">
-                        <label class="label" for="buttonSolidColorCodeInput">Button Color</label>
-                        <div class="field has-addons color-picker-row">
-                          <p class="control">
-                            <span id="buttonSolidColorSwatch" class="color-swatch-addon" aria-hidden="true"></span>
-                          </p>
-                          <p class="control is-expanded">
-                            <input id="buttonSolidColorCodeInput" class="input color-code-input" type="text" inputmode="text" maxlength="7" placeholder="#93c5fd" />
-                          </p>
-                          <p class="control">
-                            <button id="buttonSolidColorPasteBtn" class="input-icon-btn paste-btn" type="button" title="Paste color code" aria-label="Paste color code">📋</button>
-                          </p>
-                          <p class="control">
-                            <label class="input-icon-btn color-picker-btn" title="Open color picker" aria-label="Open color picker">
-                              🎨
-                              <input id="buttonSolidColorInput" class="color-picker-input" type="color" />
-                            </label>
-                          </p>
-                        </div>
-                      </div>
-                    </div>
-                    <p id="buttonColorPerGroupHint" class="help mt-3 is-hidden">Per-group button color pickers are shown inside each group block.</p>
-                  </div>
-                </div>
-              </div>
-              <div class="column is-6">
-                <div class="field mb-0">
-                  <label class="label" for="dashboardBgColorCodeInput">Tab Background Color</label>
-                  <div class="field has-addons color-picker-row">
-                    <p class="control">
-                      <span id="dashboardBgColorSwatch" class="color-swatch-addon" aria-hidden="true"></span>
-                    </p>
-                    <p class="control is-expanded">
-                      <input id="dashboardBgColorCodeInput" class="input color-code-input" type="text" inputmode="text" maxlength="7" placeholder="#0f172a" />
-                    </p>
-                    <p class="control">
-                      <button id="dashboardBgColorPasteBtn" class="input-icon-btn paste-btn" type="button" title="Paste color code" aria-label="Paste color code">📋</button>
-                    </p>
-                    <p class="control">
-                      <label class="input-icon-btn color-picker-btn" title="Open color picker" aria-label="Open color picker">
-                        🎨
-                        <input id="dashboardBgColorInput" class="color-picker-input" type="color" />
-                      </label>
-                    </p>
-                  </div>
-                  <p class="help mt-2">Background color for this dashboard page.</p>
-                </div>
-              </div>
-              <div class="column is-6">
-                <div class="field mb-0">
-                  <label class="label" for="groupBgColorCodeInput">Group Box Color</label>
-                  <div class="field has-addons color-picker-row">
-                    <p class="control">
-                      <span id="groupBgColorSwatch" class="color-swatch-addon" aria-hidden="true"></span>
-                    </p>
-                    <p class="control is-expanded">
-                      <input id="groupBgColorCodeInput" class="input color-code-input" type="text" inputmode="text" maxlength="7" placeholder="#111827" />
-                    </p>
-                    <p class="control">
-                      <button id="groupBgColorPasteBtn" class="input-icon-btn paste-btn" type="button" title="Paste color code" aria-label="Paste color code">📋</button>
-                    </p>
-                    <p class="control">
-                      <label class="input-icon-btn color-picker-btn" title="Open color picker" aria-label="Open color picker">
-                        🎨
-                        <input id="groupBgColorInput" class="color-picker-input" type="color" />
-                      </label>
-                    </p>
-                  </div>
-                  <p class="help mt-2">Background color for the button groups on this dashboard.</p>
-                </div>
-              </div>
-              <div class="column is-6">
-                <div class="field mb-0">
-                  <label class="label" for="pageTextColorCodeInput">Page Text Color</label>
-                  <div class="field has-addons color-picker-row">
-                    <p class="control">
-                      <span id="pageTextColorSwatch" class="color-swatch-addon" aria-hidden="true"></span>
-                    </p>
-                    <p class="control is-expanded">
-                      <input id="pageTextColorCodeInput" class="input color-code-input" type="text" inputmode="text" maxlength="7" placeholder="#f8fafc" />
-                    </p>
-                    <p class="control">
-                      <button id="pageTextColorPasteBtn" class="input-icon-btn paste-btn" type="button" title="Paste color code" aria-label="Paste color code">📋</button>
-                    </p>
-                    <p class="control">
-                      <label class="input-icon-btn color-picker-btn" title="Open color picker" aria-label="Open color picker">
-                        🎨
-                        <input id="pageTextColorInput" class="color-picker-input" type="color" />
-                      </label>
-                    </p>
-                  </div>
-                  <p class="help mt-2">Main text color for this tab on dashboard and admin.</p>
-                </div>
-              </div>
-              <div class="column is-6">
-                <div class="field mb-0">
-                  <label class="label" for="buttonTextColorCodeInput">Button Text Color</label>
-                  <div class="field has-addons color-picker-row">
-                    <p class="control">
-                      <span id="buttonTextColorSwatch" class="color-swatch-addon" aria-hidden="true"></span>
-                    </p>
-                    <p class="control is-expanded">
-                      <input id="buttonTextColorCodeInput" class="input color-code-input" type="text" inputmode="text" maxlength="7" placeholder="#0f172a" />
-                    </p>
-                    <p class="control">
-                      <button id="buttonTextColorPasteBtn" class="input-icon-btn paste-btn" type="button" title="Paste color code" aria-label="Paste color code">📋</button>
-                    </p>
-                    <p class="control">
-                      <label class="input-icon-btn color-picker-btn" title="Open color picker" aria-label="Open color picker">
-                        🎨
-                        <input id="buttonTextColorInput" class="color-picker-input" type="color" />
-                      </label>
-                    </p>
-                  </div>
-                  <p class="help mt-2">Text color used on dashboard buttons and admin button previews.</p>
-                </div>
-              </div>
-              <div class="column is-6">
-                <div class="field mb-0">
-                  <label class="label" for="tabColorCodeInput">Tab Color</label>
-                  <div class="field has-addons color-picker-row">
-                    <p class="control">
-                      <span id="tabColorSwatch" class="color-swatch-addon" aria-hidden="true"></span>
-                    </p>
-                    <p class="control is-expanded">
-                      <input id="tabColorCodeInput" class="input color-code-input" type="text" inputmode="text" maxlength="7" placeholder="#1e293b" />
-                    </p>
-                    <p class="control">
-                      <button id="tabColorPasteBtn" class="input-icon-btn paste-btn" type="button" title="Paste color code" aria-label="Paste color code">📋</button>
-                    </p>
-                    <p class="control">
-                      <label class="input-icon-btn color-picker-btn" title="Open color picker" aria-label="Open color picker">
-                        🎨
-                        <input id="tabColorInput" class="color-picker-input" type="color" />
-                      </label>
-                    </p>
-                  </div>
-                  <p class="help mt-2">Inactive tab background color.</p>
-                </div>
-              </div>
-              <div class="column is-6">
-                <div class="field mb-0">
-                  <label class="label" for="activeTabColorCodeInput">Active Tab Color</label>
-                  <div class="field has-addons color-picker-row">
-                    <p class="control">
-                      <span id="activeTabColorSwatch" class="color-swatch-addon" aria-hidden="true"></span>
-                    </p>
-                    <p class="control is-expanded">
-                      <input id="activeTabColorCodeInput" class="input color-code-input" type="text" inputmode="text" maxlength="7" placeholder="#2563eb" />
-                    </p>
-                    <p class="control">
-                      <button id="activeTabColorPasteBtn" class="input-icon-btn paste-btn" type="button" title="Paste color code" aria-label="Paste color code">📋</button>
-                    </p>
-                    <p class="control">
-                      <label class="input-icon-btn color-picker-btn" title="Open color picker" aria-label="Open color picker">
-                        🎨
-                        <input id="activeTabColorInput" class="color-picker-input" type="color" />
-                      </label>
-                    </p>
-                  </div>
-                  <p class="help mt-2">Active tab background color.</p>
-                </div>
-              </div>
-              <div class="column is-6">
-                <div class="field mb-0">
-                  <label class="label" for="tabTextColorCodeInput">Tab Text Color</label>
-                  <div class="field has-addons color-picker-row">
-                    <p class="control">
-                      <span id="tabTextColorSwatch" class="color-swatch-addon" aria-hidden="true"></span>
-                    </p>
-                    <p class="control is-expanded">
-                      <input id="tabTextColorCodeInput" class="input color-code-input" type="text" inputmode="text" maxlength="7" placeholder="#cbd5e1" />
-                    </p>
-                    <p class="control">
-                      <button id="tabTextColorPasteBtn" class="input-icon-btn paste-btn" type="button" title="Paste color code" aria-label="Paste color code">📋</button>
-                    </p>
-                    <p class="control">
-                      <label class="input-icon-btn color-picker-btn" title="Open color picker" aria-label="Open color picker">
-                        🎨
-                        <input id="tabTextColorInput" class="color-picker-input" type="color" />
-                      </label>
-                    </p>
-                  </div>
-                  <p class="help mt-2">Inactive tab text color.</p>
-                </div>
-              </div>
-              <div class="column is-6">
-                <div class="field mb-0">
-                  <label class="label" for="activeTabTextColorCodeInput">Active Tab Text Color</label>
-                  <div class="field has-addons color-picker-row">
-                    <p class="control">
-                      <span id="activeTabTextColorSwatch" class="color-swatch-addon" aria-hidden="true"></span>
-                    </p>
-                    <p class="control is-expanded">
-                      <input id="activeTabTextColorCodeInput" class="input color-code-input" type="text" inputmode="text" maxlength="7" placeholder="#ffffff" />
-                    </p>
-                    <p class="control">
-                      <button id="activeTabTextColorPasteBtn" class="input-icon-btn paste-btn" type="button" title="Paste color code" aria-label="Paste color code">📋</button>
-                    </p>
-                    <p class="control">
-                      <label class="input-icon-btn color-picker-btn" title="Open color picker" aria-label="Open color picker">
-                        🎨
-                        <input id="activeTabTextColorInput" class="color-picker-input" type="color" />
-                      </label>
-                    </p>
-                  </div>
-                  <p class="help mt-2">Active tab text color.</p>
-                </div>
-              </div>
-              </div>
-            </div>
-          </div>
-
-          <div id="groupsEditor"></div>
-
-          <div class="box panel-box group-add-panel">
-            <button
-              id="addGroupBtn"
-              class="button is-fullwidth group-add-panel-button"
-              type="button"
-              title="Add group"
-              aria-label="Add group"
-            >+</button>
-          </div>
-        </div>
-      </div>
-    </div>
-  </section>
-
-  <div id="entryModal" class="modal">
-    <div class="modal-background"></div>
-    <div class="modal-card">
-      <header class="modal-card-head">
-        <div class="entry-modal-head">
-          <p id="entryModalTitle" class="modal-card-title">Edit Button</p>
-          <div class="entry-modal-head-actions">
-            <button id="entryCloseBtn" class="button icon-action" type="button" title="Close" aria-label="Close">✕</button>
-          </div>
-        </div>
-      </header>
-      <section class="modal-card-body">
-        <div class="columns is-multiline">
-          <div class="column is-12">
-            <label class="label">Button Name</label>
-            <input id="entryNameInput" class="input" type="text" maxlength="80" required />
-          </div>
-          <div id="entryExternalUrlColumn" class="column is-6">
-            <label class="label">External URL</label>
-            <div class="field has-addons url-input-row">
-              <p class="control is-expanded">
-                <input id="entryExternalUrlInput" class="input" type="url" placeholder="https://example.com" />
-              </p>
-              <p class="control">
-                <button id="entryExternalUrlPasteBtn" class="input-icon-btn paste-btn" type="button" title="Paste URL" aria-label="Paste URL">📋</button>
-              </p>
-            </div>
-          </div>
-          <div id="entryInternalUrlColumn" class="column is-6">
-            <label class="label">Internal URL</label>
-            <div class="field has-addons url-input-row">
-              <p class="control is-expanded">
-                <input id="entryInternalUrlInput" class="input" type="url" placeholder="http://192.168.x.x:port" />
-              </p>
-              <p class="control">
-                <button id="entryInternalUrlPasteBtn" class="input-icon-btn paste-btn" type="button" title="Paste URL" aria-label="Paste URL">📋</button>
-              </p>
-            </div>
-          </div>
-          <div id="entryUrlHelpColumn" class="column is-12">
-            <p id="entryUrlHelpText" class="help">At least one URL (external or internal) is required.</p>
-          </div>
-          <div id="entryIconFilenameColumn" class="column is-6">
-            <label class="label">Icon Filename</label>
-            <input id="entryIconInput" class="input" type="text" maxlength="120" placeholder="example.svg" />
-            <p id="entryIconInputHint" class="help mt-2 is-hidden">Available after the button is saved.</p>
-            <p id="entryIconPreview" class="help mt-2">No icon configured</p>
-          </div>
-          <div class="column is-6">
-            <label class="label">Upload Icon</label>
-            <input id="entryIconUpload" class="input" type="file" accept="image/*" />
-            <label class="checkbox mt-2">
-              <input id="entryClearIconData" type="checkbox" />
-              Clear embedded uploaded icon
-            </label>
-          </div>
-          <div class="column is-12">
-            <label class="label">Search Icon Library</label>
-            <div class="field mb-2">
-              <div class="control">
-                <div class="select is-fullwidth">
-                  <select id="entryIconSourceSelect">
-                    <option value="selfhst">selfh.st/icons</option>
-                    <option value="iconify-simple">Iconify (Simple Icons)</option>
-                    <option value="iconify-logos">Iconify (Logos)</option>
-                  </select>
-                </div>
-              </div>
-            </div>
-            <div class="icon-search-controls">
-              <div class="control is-expanded">
-                <input id="entryIconSearchInput" class="input" type="search" maxlength="80" placeholder="Search service icon (e.g. grafana, proxmox, adguard)" />
-              </div>
-            </div>
-            <p class="help mt-2">Search a selected icon library and import a result. The selected icon is embedded locally in your dashboard config.</p>
-            <p id="entryIconSearchStatus" class="help mt-2 muted"></p>
-            <div id="entryIconSearchResults" class="icon-search-results"></div>
-          </div>
-        </div>
-      </section>
-      <footer class="modal-card-foot entry-modal-footer">
-        <div class="entry-modal-footer-top">
-          <button id="entryDeleteBtn" class="button is-danger is-light entry-modal-delete-btn" type="button">Delete</button>
-          <button id="entryCancelBtn" class="button" type="button">Cancel</button>
-        </div>
-        <div class="entry-modal-footer-bottom">
-          <button id="entrySaveBtn" class="button is-link" type="button">Save</button>
-        </div>
-      </footer>
-    </div>
-  </div>
-
-  <div id="accountPane" class="modal">
-    <div class="modal-background"></div>
-    <div class="modal-card">
-      <header class="modal-card-head">
-        <div class="account-modal-head">
-          <p class="modal-card-title">Account</p>
-          <div class="account-modal-head-actions">
-            <button id="accountCloseBtn" class="button icon-action" type="button" title="Close" aria-label="Close">✕</button>
-          </div>
-        </div>
-      </header>
-      <section class="modal-card-body">
-        <p class="muted mb-4">Update username and password.</p>
-        <div id="accountSetupNotice" class="notification is-warning is-light is-hidden">
-          First-time setup: change the account password before using the editor.
-        </div>
-
-        <form id="usernameForm" class="mb-5">
-          <div class="field">
-            <label class="label">Current Username</label>
-            <div class="control">
-              <input id="currentUsername" class="input" type="text" readonly />
-            </div>
-          </div>
-          <div class="field">
-            <label class="label">New Username</label>
-            <div class="control">
-              <input id="newUsername" class="input" type="text" minlength="3" maxlength="40" required />
-            </div>
-          </div>
-          <div class="field">
-            <label class="label">Current Password</label>
-            <div class="control">
-              <input id="usernameCurrentPassword" class="input" type="password" required />
-            </div>
-          </div>
-          <button class="button is-link" type="submit">Update Username</button>
-        </form>
-
-        <h3 class="title is-6">Change Password</h3>
-        <form id="passwordForm">
-          <div class="field">
-            <label class="label">Current Password</label>
-            <div class="control">
-              <input id="currentPassword" class="input" type="password" required />
-            </div>
-          </div>
-          <div class="field">
-            <label class="label">New Password</label>
-            <div class="control">
-              <input id="newPassword" class="input" type="password" minlength="4" required />
-            </div>
-          </div>
-          <div class="field">
-            <label class="label">Confirm New Password</label>
-            <div class="control">
-              <input id="confirmPassword" class="input" type="password" minlength="4" required />
-            </div>
-          </div>
-          <button class="button is-link" type="submit">Update Password</button>
-        </form>
-      </section>
-    </div>
-  </div>
-
-  <div id="groupActionModal" class="modal">
-    <div class="modal-background"></div>
-    <div class="modal-card">
-      <header class="modal-card-head">
-        <p id="groupActionModalTitle" class="modal-card-title">Add Group</p>
-      </header>
-      <section class="modal-card-body">
-        <p id="groupActionModalText" class="mb-3">Create a new group.</p>
-        <div id="groupActionTitleField" class="field">
-          <label id="groupActionTitleLabel" class="label">Group Title</label>
-          <input
-            id="groupActionTitleInput"
-            class="input"
-            type="text"
-            maxlength="80"
-            placeholder="New Group"
-          />
-        </div>
-      </section>
-      <footer class="modal-card-foot is-justify-content-flex-end">
-        <div class="buttons">
-          <button id="groupActionCancelBtn" class="button" type="button">Cancel</button>
-          <button id="groupActionConfirmBtn" class="button is-link" type="button">Add Group</button>
-        </div>
-      </footer>
-    </div>
-  </div>
-
-  <script src="dashboard-common.js?v=2.0.0"></script>
-  <script src="dashboard-ui.js?v=2.0.0"></script>
-  <script src="admin.js?v=2.0.12"></script>
-</body>
-</html>
+}

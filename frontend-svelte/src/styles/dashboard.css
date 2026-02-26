@@ -1,12 +1,4 @@
-<!DOCTYPE html>
-<html lang="nl">
-<head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>KISS this dashboard</title>
-  <link rel="stylesheet" href="assets/css/bulma.min.css" />
-  <style>
-    :root {
+:root {
       --shell-max-width: 1150px;
       --bg-a: #0f172a;
       --bg-b: #1e293b;
@@ -78,7 +70,6 @@
       display: flex;
       align-items: flex-end;
       gap: 0;
-      flex-wrap: wrap;
       width: 100%;
     }
 
@@ -88,7 +79,9 @@
       overflow-x: auto;
       overflow-y: hidden;
       -webkit-overflow-scrolling: touch;
-      scrollbar-width: thin;
+      scrollbar-width: none;
+      display: flex;
+      align-items: flex-end;
     }
 
     .mode-tabs-actions {
@@ -175,7 +168,7 @@
     .toolbar-mode-row {
       display: flex;
       align-items: center;
-      justify-content: space-between;
+      justify-content: flex-end;
       gap: 0.35rem;
       flex-wrap: wrap;
     }
@@ -218,6 +211,22 @@
       padding: 0;
       border: none;
       background: transparent;
+    }
+
+    .mode-switch.dashboard-link-mode {
+      padding: 0 !important;
+      border: none !important;
+      background: transparent !important;
+      box-shadow: none !important;
+    }
+
+    .toolbar-mode-row,
+    .toolbar-mode-left,
+    .toolbar-mode-actions,
+    #dashboardLinkModeSwitch {
+      border: none !important;
+      box-shadow: none !important;
+      background: transparent !important;
     }
 
     .nav-edit-mode-toggle.mode-switch {
@@ -396,6 +405,7 @@
 
       .toolbar-mode-row {
         padding: 4px 0;
+        justify-content: flex-end;
       }
 
       .toolbar-mode-left {
@@ -411,7 +421,7 @@
       }
 
       .mode-tabs-scroll {
-        flex: 1 1 auto;
+        flex: 1 1 0;
       }
 
       .mode-tabs-actions {
@@ -419,6 +429,9 @@
         align-self: stretch;
         align-items: center;
         justify-content: flex-end;
+        padding-top: 4px;
+        padding-bottom: 4px;
+        border-bottom: 1px solid rgba(148, 163, 184, 0.3);
       }
 
       .mode-tabs-row.tabs-overflowing {
@@ -434,7 +447,7 @@
         align-self: auto;
         align-items: center;
         justify-content: flex-end;
-        padding-left: 0;
+        padding: 4px 0;
         border-bottom: none;
       }
 
@@ -450,42 +463,3 @@
         padding: 12px;
       }
     }
-
-  </style>
-  <link rel="stylesheet" href="assets/css/dashboard-shell-shared.css?v=2.0.0" />
-</head>
-<body>
-  <section class="section">
-    <div class="dashboard-shell">
-      <div class="toolbar">
-        <div id="dashboardTabsWrap" class="tabs is-boxed mode-tabs">
-          <div class="mode-tabs-row">
-            <div class="mode-tabs-scroll">
-              <ul id="dashboardTabList"></ul>
-            </div>
-            <div id="dashboardTabActions" class="mode-tabs-actions"></div>
-          </div>
-        </div>
-        <div id="toolbarModeRow" class="toolbar-mode-row">
-          <div id="toolbarModeLeft" class="toolbar-mode-left">
-            <div id="dashboardLinkModeSwitch" class="mode-switch dashboard-link-mode" aria-label="Link mode switch">
-              <span id="linkModeTextLabel" class="mode-switch-label">use internal links</span>
-              <label class="ios-switch" for="linkModeToggle">
-                <input id="linkModeToggle" type="checkbox" aria-label="Switch between external and internal links" />
-                <span class="ios-switch-slider"></span>
-              </label>
-            </div>
-          </div>
-          <div id="toolbarModeActions" class="toolbar-mode-actions"></div>
-        </div>
-      </div>
-
-      <div id="dashboardContent"></div>
-    </div>
-  </section>
-
-  <script src="dashboard-common.js?v=2.0.0"></script>
-  <script src="dashboard-ui.js?v=2.0.0"></script>
-  <script src="dashboard.js?v=2.0.0"></script>
-</body>
-</html>
