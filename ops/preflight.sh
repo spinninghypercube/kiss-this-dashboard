@@ -9,7 +9,7 @@ usage() {
   cat <<USAGE
 Usage: $0 [--port PORT] [--skip-systemd] [--skip-jq]
 
-Checks host prerequisites for a local/systemd deployment.
+Checks host prerequisites for a local/systemd deployment (Go backend + Svelte frontend build).
 USAGE
 }
 
@@ -51,25 +51,29 @@ check_cmd() {
   fi
 }
 
-check_cmd python3
+check_cmd go
+check_cmd node
+check_cmd npm
 check_cmd curl
 if [[ "$CHECK_JQ" -eq 1 ]]; then
   check_cmd jq
 fi
 
-python3 - <<'PY' || fail=1
-import sys
-min_v = (3, 10)
-if sys.version_info < min_v:
-    raise SystemExit(f"[FAIL] Python {min_v[0]}.{min_v[1]}+ required, found {sys.version.split()[0]}")
-print(f"[OK] Python version: {sys.version.split()[0]}")
-PY
+if command -v go >/dev/null 2>&1; then
+  echo "[OK] $(go version)"
+fi
+if command -v node >/dev/null 2>&1; then
+  echo "[OK] node $(node --version)"
+fi
+if command -v npm >/dev/null 2>&1; then
+  echo "[OK] npm $(npm --version)"
+fi
 
 if [[ "$CHECK_SYSTEMD" -eq 1 ]]; then
   if command -v systemctl >/dev/null 2>&1 && [[ -d /run/systemd/system ]]; then
     echo "[OK] systemd detected"
   else
-    echo "[FAIL] systemd not detected (use docker-compose instead, or run with --skip-systemd)" >&2
+    echo "[FAIL] systemd not detected (run with --skip-systemd if you are only building files)" >&2
     fail=1
   fi
 fi

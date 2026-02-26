@@ -10,7 +10,7 @@ usage() {
   cat <<USAGE
 Usage: $0 --backup FILE [--data-dir DIR] [--restart-service] [--service-name NAME]
 
-Restores dashboard-config.json and users.json from a backup archive.
+Restores dashboard-config.json, users.json, and private-icons/ from a backup archive.
 Existing files are backed up in-place before restore.
 USAGE
 }
@@ -53,6 +53,15 @@ for file in dashboard-config.json users.json; do
     echo "Restored: $DATA_DIR/$file"
   fi
 done
+
+if [[ -d "$TMP_DIR/private-icons" ]]; then
+  if [[ -d "$DATA_DIR/private-icons" ]]; then
+    cp -a "$DATA_DIR/private-icons" "$DATA_DIR/private-icons.pre-restore-${STAMP}.bak"
+    rm -rf "$DATA_DIR/private-icons"
+  fi
+  cp -a "$TMP_DIR/private-icons" "$DATA_DIR/private-icons"
+  echo "Restored: $DATA_DIR/private-icons"
+fi
 
 if [[ "$RESTART_SERVICE" -eq 1 ]]; then
   if command -v systemctl >/dev/null 2>&1; then

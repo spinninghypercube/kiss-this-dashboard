@@ -11,8 +11,7 @@ KISS this dashboard is a self-hosted homepage/dashboard for homelabs and persona
 - Per-tab theming + reusable theme presets.
 - Multiple icon library integrations plus embedded/custom icon support.
 - Self-hosted auth and local persistence (no external account required).
-- Flexible deploy options: Docker Compose or plain systemd on Debian/Ubuntu.
-
+- Plain systemd deployment on Debian/Ubuntu (Go backend + built Svelte frontend).
 
 <img width="430" height="840" alt="image" src="https://github.com/user-attachments/assets/ffaca904-8216-482e-828c-2874761dbcfd" />
 
@@ -22,43 +21,19 @@ KISS this dashboard is a self-hosted homepage/dashboard for homelabs and persona
 
 <img width="1716" height="1320" alt="image" src="https://github.com/user-attachments/assets/3d77beee-5de2-40c4-b71a-ad101f91c917" />
 
-
 Important:
 - On first visit, the app prompts you to create the first admin username/password (no shared default credentials).
 - If you import an older users file with a legacy default account, the admin UI can still force a password change before edits.
-- Reverse proxy setup is intentionally not included in this repo. Bring your own if you need HTTPS/public access.
-
-## Quick Start (Docker Compose, Optional)
-
-Use this if you want a one-command Docker deployment.
-
-
-Requirements:
-- Docker + Docker Compose plugin (`docker compose`)
-
-Steps:
-1. Clone the repo.
-2. Copy env file:
-   - `cp .env.example .env`
-3. Start the app:
-   - `docker compose up -d`
-4. Open:
-   - Dashboard: `http://<host>:8080/`
-   - Editor: `http://<host>:8080/edit`
-5. On first visit, create your admin username/password in the setup form.
-
-Notes:
-- The container serves both the frontend and API on one port.
-- Persistent data is stored in the `dashboard_data` Docker volume.
+- Reverse proxy setup is optional and not bundled; an nginx example is included under `ops/nginx/`.
 
 ## Quick Start (Debian/Ubuntu, systemd)
 
-Use this if you do not want Docker.
-
-
 Requirements:
-- `python3`, `curl`, `systemd`
+- `go` (builds the backend binary)
+- `node` + `npm` (builds the Svelte frontend)
+- `curl`, `systemd`
 - `jq` recommended (used by scripts and troubleshooting)
+- `python3` optional (smoke test can use `jq` instead)
 
 Run from the cloned repo:
 1. Optional preflight:
@@ -72,8 +47,16 @@ Run from the cloned repo:
 What `ops/install.sh` does:
 - creates a system user (`kiss-this-dashboard` by default)
 - installs the app to `/opt/kiss-this-dashboard/current`
+- builds `frontend-svelte/dist` and `backend-go/kissdash-go`
 - creates persistent data dir (`/var/lib/kiss-this-dashboard`)
+- creates private icons dir (`/var/lib/kiss-this-dashboard/private-icons`)
 - installs and starts a `systemd` service
+
+## Reverse Proxy (Optional)
+
+If you want the app behind nginx on port 80/443:
+- use `ops/nginx/kiss-this-dashboard.conf`
+- it proxies all requests to the Go backend (`127.0.0.1:8788`)
 
 ## First Run / Credentials
 
@@ -84,7 +67,7 @@ What `ops/install.sh` does:
 
 ## Backups and Restore
 
-Backup current config + users:
+Backup current config + users (+ `private-icons/` if present):
 - `sudo bash ops/backup.sh`
 
 Custom paths:
@@ -122,23 +105,9 @@ Recommended upgrade flow:
 5. Run smoke test:
    - `bash ops/smoke-test.sh --base-url http://127.0.0.1:8788 --username <user> --password '<pass>'`
 
-## Releases / Versioning
-
-- `CHANGELOG.md` is included for short release notes
-- `maintainer/release.sh` helps create annotated git tags (maintainer workflow)
-
-Example:
-- `bash maintainer/release.sh 1.2.0`
-- `git push origin main --tags`
-
 ## Project Layout
 
-- `index.html` dashboard frontend
-- `edit.html` editor frontend
-- `dashboard-common.js` shared client logic + API calls
-- `dashboard.js` dashboard rendering
-- `admin.js` admin editor UI
-- `backend/dashboard_api.py` API + auth + config storage + static file serving fallback
+- `backend-go/main.go` Go API + auth + config storage + static file serving
+- `frontend-svelte/` Svelte frontend source + Vite build config
 - `dashboard-default-config.json` starter config used on first run and for reset-to-starter
-- `ops/` user-facing install/backup/restore/smoke-test scripts + systemd unit template
-- `maintainer/` maintainer-only release tooling
+- `ops/` user-facing install/backup/restore/smoke-test scripts + systemd/nginx templates

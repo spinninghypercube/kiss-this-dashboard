@@ -11,6 +11,7 @@ Usage: $0 [--data-dir DIR] [--out-dir DIR]
 Creates a timestamped tar.gz backup containing:
 - dashboard-config.json
 - users.json
+- private-icons/ (if present)
 USAGE
 }
 
@@ -36,6 +37,11 @@ for file in dashboard-config.json users.json; do
     found=1
   fi
 done
+
+if [[ -d "$DATA_DIR/private-icons" ]]; then
+  cp -a "$DATA_DIR/private-icons" "$TMP_DIR/private-icons"
+  found=1
+fi
 
 if [[ "$found" -ne 1 ]]; then
   echo "No backup files found in $DATA_DIR" >&2

@@ -1,5 +1,5 @@
 [Unit]
-Description=KISS this dashboard API
+Description=KISS this dashboard API (Go + Svelte)
 After=network.target
 
 [Service]
@@ -10,8 +10,10 @@ WorkingDirectory=/srv/www/kiss-this-dashboard/current
 Environment=DASH_BIND=127.0.0.1
 Environment=DASH_PORT=8788
 Environment=DASH_DATA_DIR=/srv/www/kiss-this-dashboard/shared/data
+Environment=DASH_PRIVATE_ICONS_DIR=/srv/www/kiss-this-dashboard/shared/private-icons
 Environment=DASH_DEFAULT_CONFIG=/srv/www/kiss-this-dashboard/current/dashboard-default-config.json
-ExecStart=/usr/bin/python3 /srv/www/kiss-this-dashboard/current/backend/dashboard_api.py
+Environment=DASH_APP_ROOT=/srv/www/kiss-this-dashboard/current/frontend-svelte/dist
+ExecStart=/srv/www/kiss-this-dashboard/current/backend-go/kissdash-go
 Restart=always
 RestartSec=2
 

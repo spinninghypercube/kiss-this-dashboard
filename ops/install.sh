@@ -60,10 +60,18 @@ if ! [[ "$PORT" =~ ^[0-9]+$ ]]; then
 fi
 
 CURRENT_DIR="${INSTALL_DIR%/}/current"
+PRIVATE_ICONS_DIR="${DATA_DIR%/}/private-icons"
 ENV_FILE="/etc/default/${SERVICE_NAME}"
 UNIT_FILE="/etc/systemd/system/${SERVICE_NAME}.service"
 
-mkdir -p "$INSTALL_DIR" "$CURRENT_DIR" "$DATA_DIR"
+for cmd in go node npm curl; do
+  if ! command -v "$cmd" >/dev/null 2>&1; then
+    echo "Missing required command: $cmd" >&2
+    exit 1
+  fi
+done
+
+mkdir -p "$INSTALL_DIR" "$CURRENT_DIR" "$DATA_DIR" "$PRIVATE_ICONS_DIR"
 
 if ! getent group "$SERVICE_GROUP" >/dev/null; then
   groupadd --system "$SERVICE_GROUP"
@@ -77,19 +85,57 @@ if command -v rsync >/dev/null 2>&1; then
   rsync -a --delete \
     --exclude '.git' \
     --exclude '.gitignore' \
+    --exclude 'frontend-svelte/node_modules' \
+    --exclude 'frontend-svelte/dist' \
+    --exclude 'frontend-svelte/.svelte-kit' \
+    --exclude 'backend-go/kissdash-go' \
     --exclude 'backend/__pycache__' \
     --exclude '__pycache__' \
     "$ROOT_DIR/" "$CURRENT_DIR/"
 else
   echo "[WARN] rsync not found; using cp -a (stale files may remain on upgrades)"
   cp -a "$ROOT_DIR/." "$CURRENT_DIR/"
-  rm -rf "$CURRENT_DIR/.git" "$CURRENT_DIR/backend/__pycache__" || true
+  rm -rf \
+    "$CURRENT_DIR/.git" \
+    "$CURRENT_DIR/backend/__pycache__" \
+    "$CURRENT_DIR/frontend-svelte/node_modules" \
+    "$CURRENT_DIR/frontend-svelte/dist" \
+    "$CURRENT_DIR/frontend-svelte/.svelte-kit" \
+    "$CURRENT_DIR/backend-go/kissdash-go" || true
 fi
+
+if [[ ! -f "$CURRENT_DIR/frontend-svelte/package.json" ]]; then
+  echo "Missing frontend-svelte/package.json in install source." >&2
+  exit 1
+fi
+if [[ ! -f "$CURRENT_DIR/backend-go/main.go" ]]; then
+  echo "Missing backend-go/main.go in install source." >&2
+  exit 1
+fi
+
+echo "[1/3] Building frontend (Svelte/Vite)"
+(
+  cd "$CURRENT_DIR/frontend-svelte"
+  npm ci
+  npm run build
+  rm -rf node_modules
+)
+
+echo "[2/3] Building backend (Go)"
+(
+  cd "$CURRENT_DIR/backend-go"
+  go build -buildvcs=false -o kissdash-go .
+  chmod 755 kissdash-go
+)
+
+echo "[3/3] Applying ownership and runtime permissions"
 
 chown -R root:root "$CURRENT_DIR"
 chmod -R a+rX "$CURRENT_DIR"
 chown -R "$SERVICE_USER:$SERVICE_GROUP" "$DATA_DIR"
+chown -R "$SERVICE_USER:$SERVICE_GROUP" "$PRIVATE_ICONS_DIR"
 chmod 750 "$DATA_DIR"
+chmod 750 "$PRIVATE_ICONS_DIR"
 
 if [[ ! -f "$ENV_FILE" ]]; then
   cat > "$ENV_FILE" <<ENV
@@ -97,8 +143,9 @@ if [[ ! -f "$ENV_FILE" ]]; then
 DASH_BIND=${BIND_ADDR}
 DASH_PORT=${PORT}
 DASH_DATA_DIR=${DATA_DIR}
+DASH_PRIVATE_ICONS_DIR=${PRIVATE_ICONS_DIR}
 DASH_DEFAULT_CONFIG=${CURRENT_DIR}/dashboard-default-config.json
-DASH_APP_ROOT=${CURRENT_DIR}
+DASH_APP_ROOT=${CURRENT_DIR}/frontend-svelte/dist
 # DASH_SESSION_TTL=43200
 # DASH_ICON_INDEX_TTL=21600
 # DASH_ICON_SEARCH_MAX_LIMIT=30
@@ -117,7 +164,10 @@ User=${SERVICE_USER}
 Group=${SERVICE_GROUP}
 WorkingDirectory=${CURRENT_DIR}
 EnvironmentFile=-${ENV_FILE}
-ExecStart=/usr/bin/python3 ${CURRENT_DIR}/backend/dashboard_api.py
+Environment=DASH_DEFAULT_CONFIG=${CURRENT_DIR}/dashboard-default-config.json
+Environment=DASH_APP_ROOT=${CURRENT_DIR}/frontend-svelte/dist
+Environment=DASH_PRIVATE_ICONS_DIR=${PRIVATE_ICONS_DIR}
+ExecStart=${CURRENT_DIR}/backend-go/kissdash-go
 Restart=always
 RestartSec=2
 
@@ -130,7 +180,7 @@ if [[ "$ENABLE_SERVICE" -eq 1 ]]; then
   systemctl enable --now "$SERVICE_NAME"
   systemctl restart "$SERVICE_NAME"
   if command -v curl >/dev/null 2>&1; then
-    HEALTH_URL="http://${BIND_ADDR}:${PORT}/health"
+    HEALTH_URL="http://127.0.0.1:${PORT}/health"
     for _ in $(seq 1 15); do
       if curl -fsS "$HEALTH_URL" >/dev/null 2>&1; then
         break
@@ -148,5 +198,6 @@ else
 fi
 echo "App dir: ${CURRENT_DIR}"
 echo "Data dir: ${DATA_DIR}"
+echo "Private icons dir: ${PRIVATE_ICONS_DIR}"
 echo "Open: http://${BIND_ADDR}:${PORT}/ and /edit"
 echo "First visit /edit: create the first admin account"

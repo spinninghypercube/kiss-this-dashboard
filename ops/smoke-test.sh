@@ -61,8 +61,11 @@ curl -fsS "$BASE_URL/edit" >/dev/null
 
 echo "[4/6] Login"
 AUTH_PAYLOAD="$(
-  USERNAME="$USERNAME" PASSWORD="$PASSWORD" \
-    python3 - <<'PY'
+  if command -v jq >/dev/null 2>&1; then
+    jq -nc --arg username "$USERNAME" --arg password "$PASSWORD" '{username:$username,password:$password}'
+  elif command -v python3 >/dev/null 2>&1; then
+    USERNAME="$USERNAME" PASSWORD="$PASSWORD" \
+      python3 - <<'PY'
 import json
 import os
 
@@ -71,6 +74,10 @@ print(json.dumps({
     "password": os.environ.get("PASSWORD", ""),
 }))
 PY
+  else
+    echo "jq or python3 is required for smoke-test JSON payload generation" >&2
+    exit 1
+  fi
 )"
 LOGIN_HTTP="$(curl -sS -o "$LOGIN_BODY" -w '%{http_code}' -c "$COOKIE_JAR" -H 'Content-Type: application/json' -d "$AUTH_PAYLOAD" "$BASE_URL/api/login")"
 LOGIN_JSON="$(cat "$LOGIN_BODY")"
