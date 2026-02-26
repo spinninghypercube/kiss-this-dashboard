@@ -126,7 +126,7 @@
 
     .account-box,
     .modal-card {
-      color: var(--admin-page-text-color, var(--dashboard-text-color, var(--title)));
+      color: var(--admin-surface-text-color, var(--dashboard-text-color, var(--title)));
     }
 
     .panel-box .title,
@@ -166,7 +166,7 @@
     .modal-card p,
     .modal-card .checkbox,
     .modal-card-title {
-      color: var(--admin-page-text-color, var(--dashboard-text-color, var(--title)));
+      color: var(--admin-surface-text-color, var(--dashboard-text-color, var(--title)));
     }
 
     .panel-box .muted,
@@ -180,7 +180,7 @@
 
     .account-box .muted,
     .modal-card .muted {
-      color: var(--admin-page-text-muted, var(--text-soft));
+      color: var(--admin-surface-text-muted, var(--text-soft));
     }
 
     .input,
@@ -931,7 +931,7 @@
 
     .account-box,
     .modal-card {
-      background: var(--dashboard-page-bg, var(--panel-bg));
+      background: var(--dashboard-group-bg, var(--panel-bg));
     }
 
     .admin-group-shell-flat .group-box {
@@ -1336,7 +1336,7 @@
 
     .modal-card-body {
       background: var(--admin-modal-bg, rgba(15, 23, 42, 0.88));
-      color: var(--admin-page-text-color, var(--dashboard-text-color, var(--title)));
+      color: var(--admin-surface-text-color, var(--dashboard-text-color, var(--title)));
     }
 
     .icon-preview {
