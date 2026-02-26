@@ -86,13 +86,6 @@ Basic smoke test:
 
 If no admin account exists yet, the smoke test bootstraps the first one using the provided username/password.
 
-## Reset to Starter Config (Admin UI)
-
-In `Admin` -> `Tab Settings`, use:
-- `Reset to Starter`
-
-This replaces the current dashboard config with the starter config from `dashboard-default-config.json`.
-
 ## Upgrades
 
 Recommended upgrade flow:
