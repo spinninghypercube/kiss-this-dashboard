@@ -905,6 +905,10 @@
       padding: 24px;
     }
 
+    .login-box {
+      background: var(--dashboard-group-bg, var(--panel-bg));
+    }
+
     .admin-group-shell-flat .group-box {
       background: transparent;
       border-color: transparent;
