@@ -13,8 +13,7 @@
 - Docker Compose or plain systemd deployment on Linux
 - Windows one-shot installer (PowerShell) and optional EXE bootstrap artifact
 
-![KISS](https://github.com/user-attachments/assets/fb9ca46b-bd16-4fe1-9fae-009ef46b24e5)
-
+![KISS2](https://github.com/user-attachments/assets/ac51d41b-fb4f-454e-acee-7e43b74cd556)
 
 Important:
 - On first visit, the app prompts you to create the first admin username/password (no shared default credentials).
