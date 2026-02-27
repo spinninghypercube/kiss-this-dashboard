@@ -1,0 +1,49 @@
+name: Build Windows Bootstrap EXE
+
+on:
+  workflow_dispatch:
+  push:
+    tags:
+      - "v*"
+
+permissions:
+  contents: write
+
+jobs:
+  build-windows-bootstrap:
+    runs-on: windows-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Install PS2EXE
+        shell: pwsh
+        run: |
+          Set-PSRepository -Name PSGallery -InstallationPolicy Trusted
+          Install-Module -Name ps2exe -Scope CurrentUser -Force
+
+      - name: Build EXE
+        shell: pwsh
+        run: |
+          New-Item -Path dist -ItemType Directory -Force | Out-Null
+          Import-Module ps2exe
+          Invoke-ps2exe `
+            -inputFile ops/bootstrap-windows.ps1 `
+            -outputFile dist/kiss-this-dashboard-bootstrap.exe `
+            -x64 `
+            -requireAdmin `
+            -title "KISS this dashboard Installer" `
+            -description "One-shot Windows installer for KISS this dashboard"
+
+      - name: Upload Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: kiss-this-dashboard-windows-installer
+          path: dist/kiss-this-dashboard-bootstrap.exe
+
+      - name: Attach EXE to Release
+        if: startsWith(github.ref, 'refs/tags/')
+        uses: softprops/action-gh-release@v2
+        with:
+          files: dist/kiss-this-dashboard-bootstrap.exe

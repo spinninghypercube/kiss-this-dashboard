@@ -11,6 +11,7 @@
 - Self-hosted auth and local persistence (no external account required)
 - No heavy stack, no cloud dependency, no over-engineered setup
 - Docker Compose or plain systemd deployment on Linux
+- Windows one-shot installer (PowerShell) and optional EXE bootstrap artifact
 
 <img width="430" height="840" alt="image" src="https://github.com/user-attachments/assets/ffaca904-8216-482e-828c-2874761dbcfd" />
 
@@ -37,9 +38,49 @@ curl -fsSL https://raw.githubusercontent.com/spinninghypercube/kiss-this-dashboa
 curl -fsSL https://raw.githubusercontent.com/spinninghypercube/kiss-this-dashboard/main/ops/bootstrap.sh | sudo bash
 ```
 
+**Windows (PowerShell):**
+```powershell
+powershell -NoProfile -ExecutionPolicy Bypass -Command "irm https://raw.githubusercontent.com/spinninghypercube/kiss-this-dashboard/main/ops/bootstrap-windows.ps1 | iex"
+```
+
 Then open `http://<your-server-ip>:8788` — the first visit walks you through creating an admin account.
 
 ## Install Options
+
+### Windows (PowerShell or EXE)
+
+PowerShell one-shot installer (run as Administrator):
+
+```powershell
+powershell -NoProfile -ExecutionPolicy Bypass -Command "irm https://raw.githubusercontent.com/spinninghypercube/kiss-this-dashboard/main/ops/bootstrap-windows.ps1 | iex"
+```
+
+Safer two-step variant (lets you inspect before running):
+
+```powershell
+iwr https://raw.githubusercontent.com/spinninghypercube/kiss-this-dashboard/main/ops/bootstrap-windows.ps1 -OutFile bootstrap-windows.ps1
+powershell -NoProfile -ExecutionPolicy Bypass -File .\bootstrap-windows.ps1
+```
+
+What it does:
+- checks or installs dependencies (`git`, `node`, `npm`, `go`, `nssm`) via `winget`
+- clones/updates the repo in `C:\ProgramData\KissThisDashboard\app`
+- builds frontend + backend
+- installs/updates Windows service `kiss-this-dashboard-api`
+
+Useful flags:
+- `-Port 8788`
+- `-Bind 127.0.0.1` (recommended for same-host reverse proxy setups)
+- `-InstallRoot C:\ProgramData\KissThisDashboard`
+- `-DataDir D:\kiss-data`
+- `-Branch main`
+- `-NoService` (run in current console instead of service mode)
+- `-SkipDependencyInstall` (fail fast if tools are missing)
+
+EXE option:
+- download `kiss-this-dashboard-bootstrap.exe` from GitHub Releases
+- run it as Administrator
+- this EXE is generated from `ops/bootstrap-windows.ps1` by `.github/workflows/windows-bootstrap-exe.yml`
 
 ### Linux (Debian/Ubuntu, systemd)
 
@@ -171,8 +212,11 @@ Linux one-shot (systemd install):
 Docker one-shot (Docker Compose install):
 - `curl -fsSL https://raw.githubusercontent.com/spinninghypercube/kiss-this-dashboard/main/ops/bootstrap-docker.sh | bash`
 
+Windows one-shot (PowerShell install):
+- `powershell -NoProfile -ExecutionPolicy Bypass -Command "irm https://raw.githubusercontent.com/spinninghypercube/kiss-this-dashboard/main/ops/bootstrap-windows.ps1 | iex"`
+
 Notes:
-- Reuse the same flags you used originally (`--port`, `--bind`, `--install-dir`, `--data-dir`, or `--dir`).
+- Reuse the same flags you used originally (`--port`, `--bind`, `--install-dir`, `--data-dir`, `--dir`, `-Port`, `-Bind`, `-InstallRoot`, or `-DataDir`).
 - Reuse the same user/root context you used originally, especially for the Docker one-shot install.
 - If you installed from a local git checkout instead of the one-shot installers, use the manual upgrade flow below.
 
@@ -195,3 +239,4 @@ Recommended upgrade flow:
 - `Dockerfile` and `docker-compose.yml` for containerized deployment
 - `dashboard-default-config.json` starter config used on first run and for reset-to-starter
 - `ops/` user-facing install/backup/restore/smoke-test scripts + one-shot installers + systemd/nginx templates
+- `.github/workflows/windows-bootstrap-exe.yml` Windows installer EXE build pipeline
