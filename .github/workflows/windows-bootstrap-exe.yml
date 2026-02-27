@@ -19,6 +19,17 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
+      - name: Read App Version
+        id: version
+        shell: pwsh
+        run: |
+          $mainGo = Get-Content -Path backend-go/main.go -Raw
+          if ($mainGo -match 'appVersion\s*=\s*"([^"]+)"') {
+            "app_version=$($Matches[1])" >> $env:GITHUB_OUTPUT
+          } else {
+            throw "Failed to find appVersion in backend-go/main.go"
+          }
+
       - name: Install PS2EXE
         shell: pwsh
         run: |
@@ -30,19 +41,22 @@ jobs:
         run: |
           New-Item -Path dist -ItemType Directory -Force | Out-Null
           Import-Module ps2exe
+          $ver = '${{ steps.version.outputs.app_version }}'
+          $versionedExe = "dist/kiss-this-dashboard-bootstrap-v$ver.exe"
           Invoke-ps2exe `
             -inputFile ops/bootstrap-windows.ps1 `
-            -outputFile dist/kiss-this-dashboard-bootstrap.exe `
+            -outputFile $versionedExe `
             -x64 `
             -requireAdmin `
-            -title "KISS this dashboard Installer" `
-            -description "One-shot Windows installer for KISS this dashboard"
+            -title "KISS this dashboard Installer v$ver" `
+            -description "One-shot Windows installer for KISS this dashboard v$ver"
+          Copy-Item -Path $versionedExe -Destination dist/kiss-this-dashboard-bootstrap.exe -Force
 
       - name: Upload Artifact
         uses: actions/upload-artifact@v4
         with:
           name: kiss-this-dashboard-windows-installer
-          path: dist/kiss-this-dashboard-bootstrap.exe
+          path: dist/*.exe
 
       - name: Publish Rolling EXE Release
         if: github.event_name == 'workflow_dispatch' || github.ref == 'refs/heads/main'
@@ -53,10 +67,10 @@ jobs:
           prerelease: true
           make_latest: false
           target_commitish: ${{ github.sha }}
-          files: dist/kiss-this-dashboard-bootstrap.exe
+          files: dist/*.exe
 
       - name: Attach EXE to Version Release
         if: startsWith(github.ref, 'refs/tags/')
         uses: softprops/action-gh-release@v2
         with:
-          files: dist/kiss-this-dashboard-bootstrap.exe
+          files: dist/*.exe

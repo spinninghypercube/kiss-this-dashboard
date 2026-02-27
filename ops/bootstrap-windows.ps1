@@ -117,6 +117,22 @@ function Wait-ForHealth {
     return $false
 }
 
+function Get-AppVersion {
+    param([Parameter(Mandatory = $true)][string]$RepoRoot)
+
+    $mainGo = Join-Path $RepoRoot "backend-go\main.go"
+    if (-not (Test-Path $mainGo)) {
+        throw "Unable to detect app version: missing $mainGo"
+    }
+
+    $raw = Get-Content -Path $mainGo -Raw
+    $match = [regex]::Match($raw, 'appVersion\s*=\s*"([^"]+)"')
+    if (-not $match.Success) {
+        throw "Unable to detect app version in backend-go/main.go"
+    }
+    return $match.Groups[1].Value
+}
+
 if ($env:OS -ne "Windows_NT") {
     throw "This installer only supports Windows."
 }
@@ -175,6 +191,9 @@ else {
     Write-Step "Cloning $RepoUrl ($Branch)"
     Invoke-External -FilePath "git" -Arguments @("clone", "--depth", "1", "--branch", $Branch, $RepoUrl, $appDir) -FailureMessage "git clone failed"
 }
+
+$appVersion = Get-AppVersion -RepoRoot $appDir
+Write-Step "Detected app version: $appVersion"
 
 Write-Step "Building frontend"
 Push-Location $frontendDir
@@ -262,6 +281,7 @@ if ([string]::IsNullOrWhiteSpace($ip)) {
 
 Write-Host ""
 Write-Host "One Shot Install (Windows) complete."
+Write-Host "App version: $appVersion"
 if (Test-PathIsLocalhost -Address $Bind) {
     Write-Host "Backend bind: $Bind (local-only)"
     Write-Host "Open via your reverse proxy URL, or local URL below."
