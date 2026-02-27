@@ -763,6 +763,15 @@ function setActiveDashboardId(dashboardId) {
   localStorage.setItem(ACTIVE_DASHBOARD_KEY, dashboardId);
 }
 
+async function fetchVersion() {
+  try {
+    const payload = await requestJSON('/api/version', { method: 'GET' });
+    return payload?.version || '';
+  } catch {
+    return '';
+  }
+}
+
 export const DashboardCommon = {
   clone,
   createId,
@@ -788,7 +797,8 @@ export const DashboardCommon = {
   getLinkMode,
   setLinkMode,
   getActiveDashboardId,
-  setActiveDashboardId
+  setActiveDashboardId,
+  fetchVersion
 };
 
 

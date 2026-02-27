@@ -27,8 +27,9 @@ import (
 )
 
 const (
+	appVersion                = "2.1.1"
 	sessionCookieNameDefault = "dash_session"
-	defaultSessionTTL        = 43200
+	defaultSessionTTL        = 315360000
 	defaultIconIndexTTL      = 21600
 	defaultIconSearchLimit   = 30
 )
@@ -51,6 +52,7 @@ type envConfig struct {
 	AppRoot            string
 	SessionTTLSeconds  int
 	SessionCookieName  string
+	SessionsFile       string
 	IconIndexTTL       int
 	IconSearchMaxLimit int
 	SelfhstIndexURL    string
@@ -115,6 +117,7 @@ func main() {
 	if err := a.ensureFilesReady(); err != nil {
 		log.Fatalf("failed to initialize data files: %v", err)
 	}
+	a.loadSessions()
 
 	addr := fmt.Sprintf("%s:%d", cfg.Bind, cfg.Port)
 	server := &http.Server{
@@ -123,7 +126,7 @@ func main() {
 		ReadHeaderTimeout: 10 * time.Second,
 	}
 
-	log.Printf("Go backend listening on http://%s", addr)
+	log.Printf("KISS this dashboard v%s — listening on http://%s", appVersion, addr)
 	if err := server.ListenAndServe(); err != nil && !errors.Is(err, http.ErrServerClosed) {
 		log.Fatalf("server error: %v", err)
 	}
@@ -149,6 +152,7 @@ func loadEnv() envConfig {
 		AppRoot:            appRoot,
 		SessionTTLSeconds:  getenvInt("DASH_SESSION_TTL", defaultSessionTTL),
 		SessionCookieName:  sessionCookieNameDefault,
+		SessionsFile:       filepath.Join(dataDir, "sessions.json"),
 		IconIndexTTL:       getenvInt("DASH_ICON_INDEX_TTL", defaultIconIndexTTL),
 		IconSearchMaxLimit: getenvInt("DASH_ICON_SEARCH_MAX_LIMIT", defaultIconSearchLimit),
 		SelfhstIndexURL:    getenv("DASH_ICON_INDEX_URL", "https://raw.githubusercontent.com/selfhst/icons/main/index.json"),
@@ -479,6 +483,37 @@ func uint32BE(v uint32) []byte {
 	return b[:]
 }
 
+func (a *app) loadSessions() {
+	raw, err := os.ReadFile(a.cfg.SessionsFile)
+	if err != nil {
+		return // file doesn't exist yet, start fresh
+	}
+	var sessions map[string]sessionInfo
+	if err := json.Unmarshal(raw, &sessions); err != nil {
+		log.Printf("warn: could not parse sessions file: %v", err)
+		return
+	}
+	a.sessMu.Lock()
+	defer a.sessMu.Unlock()
+	now := time.Now().Unix()
+	for token, s := range sessions {
+		if s.Expires > now {
+			a.sessions[token] = s
+		}
+	}
+}
+
+func (a *app) saveSessionsLocked() {
+	data, err := json.Marshal(a.sessions)
+	if err != nil {
+		log.Printf("warn: could not marshal sessions: %v", err)
+		return
+	}
+	if err := os.WriteFile(a.cfg.SessionsFile, data, 0600); err != nil {
+		log.Printf("warn: could not save sessions: %v", err)
+	}
+}
+
 func (a *app) pruneSessionsLocked() {
 	now := time.Now().Unix()
 	for token, s := range a.sessions {
@@ -501,6 +536,7 @@ func (a *app) createSession(username string) (string, error) {
 		Username: username,
 		Expires:  time.Now().Unix() + int64(a.cfg.SessionTTLSeconds),
 	}
+	a.saveSessionsLocked()
 	return token, nil
 }
 
@@ -528,6 +564,7 @@ func (a *app) removeSession(r *http.Request) {
 	}
 	a.sessMu.Lock()
 	delete(a.sessions, cookie.Value)
+	a.saveSessionsLocked()
 	a.sessMu.Unlock()
 }
 
@@ -545,6 +582,7 @@ func (a *app) updateSessionUsername(r *http.Request, oldUsername, newUsername st
 	}
 	s.Username = newUsername
 	a.sessions[cookie.Value] = s
+	a.saveSessionsLocked()
 }
 
 func (a *app) setSessionCookie(w http.ResponseWriter, token string) {
@@ -646,6 +684,9 @@ func (a *app) handleGET(w http.ResponseWriter, r *http.Request, path string) {
 	switch path {
 	case "/health":
 		writeJSON(w, http.StatusOK, map[string]any{"ok": true})
+		return
+	case "/api/version":
+		writeJSON(w, http.StatusOK, map[string]any{"version": appVersion})
 		return
 	case "/api/config":
 		writeJSON(w, http.StatusOK, map[string]any{"config": a.getConfigPayload()})

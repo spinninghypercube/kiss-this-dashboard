@@ -88,6 +88,7 @@
   // ─── Shared state ─────────────────────────────────────────────────────────────
 
   let editMode = false;
+  let appVersion = '';
   let config = { title: 'KISS this dashboard', theme: {}, dashboards: [], themePresets: [] };
   let activeDashboardId = DashboardCommon.getActiveDashboardId();
   let activeDashboard = null;
@@ -1014,6 +1015,7 @@
     loadConfig().then(() => {
       if (startInEditMode) enterEditMode();
     });
+    DashboardCommon.fetchVersion().then(v => { appVersion = v; });
 
     const onResize = () => { applyDashboardTheme(); updateViewportState(); updateTabsOverflowState(); };
     window.addEventListener('resize', onResize);
@@ -1317,6 +1319,10 @@
 
   </div>
 </section>
+
+{#if appVersion}
+  <div class="app-version-badge">v{appVersion}</div>
+{/if}
 
 <!-- ─── Modals (edit mode only) ──────────────────────────────────────── -->
 {#if editMode}

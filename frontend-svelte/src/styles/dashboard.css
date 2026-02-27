@@ -473,3 +473,15 @@
         padding: 12px;
       }
     }
+
+.app-version-badge {
+  position: fixed;
+  bottom: 0.6rem;
+  right: 0.75rem;
+  font-size: 0.7rem;
+  opacity: 0.35;
+  color: var(--dashboard-text-color, #f8fafc);
+  pointer-events: none;
+  user-select: none;
+  z-index: 10;
+}
