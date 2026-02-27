@@ -78,8 +78,10 @@ Useful flags:
 - `-SkipDependencyInstall` (fail fast if tools are missing)
 
 EXE option:
-- download `kiss-this-dashboard-bootstrap.exe` from GitHub Releases
+- direct rolling download URL: `https://github.com/spinninghypercube/kiss-this-dashboard/releases/download/windows-installer-latest/kiss-this-dashboard-bootstrap.exe`
+- latest versioned release URL: `https://github.com/spinninghypercube/kiss-this-dashboard/releases/latest/download/kiss-this-dashboard-bootstrap.exe`
 - run it as Administrator
+- run the `Build Windows Bootstrap EXE` workflow once (workflow_dispatch) to create/update the rolling asset
 - this EXE is generated from `ops/bootstrap-windows.ps1` by `.github/workflows/windows-bootstrap-exe.yml`
 
 ### Linux (Debian/Ubuntu, systemd)

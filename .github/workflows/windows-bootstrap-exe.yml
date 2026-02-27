@@ -42,7 +42,18 @@ jobs:
           name: kiss-this-dashboard-windows-installer
           path: dist/kiss-this-dashboard-bootstrap.exe
 
-      - name: Attach EXE to Release
+      - name: Publish Rolling EXE Release
+        if: github.event_name == 'workflow_dispatch'
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: windows-installer-latest
+          name: Windows Installer (Rolling)
+          prerelease: true
+          make_latest: false
+          target_commitish: ${{ github.sha }}
+          files: dist/kiss-this-dashboard-bootstrap.exe
+
+      - name: Attach EXE to Version Release
         if: startsWith(github.ref, 'refs/tags/')
         uses: softprops/action-gh-release@v2
         with:
