@@ -1320,7 +1320,7 @@
   </div>
 </section>
 
-{#if appVersion}
+{#if appVersion && editMode}
   <div class="app-version-badge">v{appVersion}</div>
 {/if}
 
