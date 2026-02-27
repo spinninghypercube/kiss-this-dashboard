@@ -10,6 +10,7 @@ DATA_DIR="/var/lib/kiss-this-dashboard"
 GO_MIN_VERSION="1.24.0"
 NODE_MIN_MAJOR="18"
 NODE_FALLBACK_MAJOR="20"
+SUPPORTED_DISTRO_HINT="Debian/Ubuntu family (ID or ID_LIKE includes debian/ubuntu) with apt-get"
 
 usage() {
   cat <<USAGE
@@ -41,15 +42,48 @@ while [[ $# -gt 0 ]]; do
   esac
 done
 
+require_supported_distro() {
+  local os_name os_id os_like family
+  if [[ "$(uname -s)" != "Linux" ]]; then
+    echo "Unsupported OS: $(uname -s)." >&2
+    echo "Supported distro: ${SUPPORTED_DISTRO_HINT}." >&2
+    exit 1
+  fi
+
+  if [[ ! -r /etc/os-release ]]; then
+    echo "Unsupported Linux distribution: /etc/os-release is missing." >&2
+    echo "Supported distro: ${SUPPORTED_DISTRO_HINT}." >&2
+    exit 1
+  fi
+
+  # shellcheck disable=SC1091
+  . /etc/os-release
+  os_name="${PRETTY_NAME:-${NAME:-unknown}}"
+  os_id="${ID:-unknown}"
+  os_like="${ID_LIKE:-}"
+  family=" ${os_id} ${os_like} "
+
+  if [[ "$family" != *" debian "* && "$family" != *" ubuntu "* ]]; then
+    echo "Unsupported Linux distribution: ${os_name} (ID=${os_id}, ID_LIKE=${os_like:-<empty>})." >&2
+    echo "Supported distro: ${SUPPORTED_DISTRO_HINT}." >&2
+    exit 1
+  fi
+
+  if ! command -v apt-get >/dev/null 2>&1; then
+    echo "Unsupported package manager on ${os_name}: apt-get not found." >&2
+    echo "Supported distro: ${SUPPORTED_DISTRO_HINT}." >&2
+    exit 1
+  fi
+
+  echo "[bootstrap] Detected distro: ${os_name} (ID=${os_id}, ID_LIKE=${os_like:-<empty>})"
+}
+
 if [[ "${EUID}" -ne 0 ]]; then
   echo "Run as root (for example: curl ... | sudo bash)" >&2
   exit 1
 fi
 
-if ! command -v apt-get >/dev/null 2>&1; then
-  echo "This one-shot installer currently supports Debian/Ubuntu (apt-get)." >&2
-  exit 1
-fi
+require_supported_distro
 
 version_ge() {
   local have="$1"

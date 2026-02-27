@@ -5,6 +5,7 @@ REPO_URL="https://github.com/spinninghypercube/kiss-this-dashboard.git"
 BRANCH="main"
 PORT="8788"
 INSTALL_DIR=""
+SUPPORTED_DOCKER_DISTRO_HINT="Debian/Ubuntu, RHEL/Fedora, Arch, Alpine, or SUSE Linux families"
 
 usage() {
   cat <<USAGE
@@ -40,6 +41,41 @@ if [[ -z "$INSTALL_DIR" ]]; then
   fi
 fi
 
+require_supported_docker_platform() {
+  local os_name os_id os_like family
+  if [[ "$(uname -s)" != "Linux" ]]; then
+    echo "Unsupported OS: $(uname -s)." >&2
+    echo "This Docker one-shot installer supports Linux hosts only." >&2
+    exit 1
+  fi
+
+  if [[ ! -r /etc/os-release ]]; then
+    echo "Unsupported Linux distribution: /etc/os-release is missing." >&2
+    echo "Supported distro families: ${SUPPORTED_DOCKER_DISTRO_HINT}." >&2
+    exit 1
+  fi
+
+  # shellcheck disable=SC1091
+  . /etc/os-release
+  os_name="${PRETTY_NAME:-${NAME:-unknown}}"
+  os_id="${ID:-unknown}"
+  os_like="${ID_LIKE:-}"
+  family=" ${os_id} ${os_like} "
+
+  if [[ "$family" != *" debian "* && "$family" != *" ubuntu "* && \
+        "$family" != *" rhel "* && "$family" != *" fedora "* && \
+        "$family" != *" centos "* && "$family" != *" rocky "* && \
+        "$family" != *" almalinux "* && "$family" != *" arch "* && \
+        "$family" != *" alpine "* && "$family" != *" suse "* && \
+        "$family" != *" opensuse "* ]]; then
+    echo "Unsupported Linux distribution: ${os_name} (ID=${os_id}, ID_LIKE=${os_like:-<empty>})." >&2
+    echo "Supported distro families: ${SUPPORTED_DOCKER_DISTRO_HINT}." >&2
+    exit 1
+  fi
+
+  echo "[bootstrap-docker] Detected distro: ${os_name} (ID=${os_id}, ID_LIKE=${os_like:-<empty>})"
+}
+
 require_cmd() {
   if ! command -v "$1" >/dev/null 2>&1; then
     echo "Missing required command: $1" >&2
@@ -47,6 +83,7 @@ require_cmd() {
   fi
 }
 
+require_supported_docker_platform
 require_cmd git
 require_cmd docker
 
@@ -120,4 +157,3 @@ echo "One Shot Install (Docker) complete."
 echo "Open:  http://${host_ip}:${PORT}/"
 echo "Edit:  http://${host_ip}:${PORT}/edit"
 echo "App dir: $INSTALL_DIR"
-
