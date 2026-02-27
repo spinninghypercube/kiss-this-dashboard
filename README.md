@@ -51,13 +51,14 @@ curl -fsSL https://raw.githubusercontent.com/spinninghypercube/kiss-this-dashboa
 | Linux systemd | `ops/bootstrap.sh` | `--port`, `--bind`, `--install-dir`, `--data-dir`, `--branch` |
 | Linux Docker | `ops/bootstrap-docker.sh` | `--port`, `--dir`, `--branch` |
 
-## Day-2 Ops
+## Updating
 
 Update by rerunning the installer you used initially:
 
 - Linux systemd: `curl -fsSL https://raw.githubusercontent.com/spinninghypercube/kiss-this-dashboard/main/ops/bootstrap.sh | sudo bash`
 - Linux Docker: `curl -fsSL https://raw.githubusercontent.com/spinninghypercube/kiss-this-dashboard/main/ops/bootstrap-docker.sh | bash`
 - Windows PowerShell: `powershell -NoProfile -ExecutionPolicy Bypass -Command "irm https://raw.githubusercontent.com/spinninghypercube/kiss-this-dashboard/main/ops/bootstrap-windows.ps1 | iex"`
+- Windows EXE: rerun `kiss-this-dashboard-bootstrap.exe` as Administrator
 
 Backup and restore (Linux/systemd installs):
 
@@ -67,6 +68,12 @@ Backup and restore (Linux/systemd installs):
 Smoke test:
 
 - `bash ops/smoke-test.sh --base-url http://127.0.0.1:8788 --username smokeadmin --password 'smoketest123'`
+
+Windows EXE update notes:
+
+- Yes, the EXE can update an existing Windows install in place.
+- Default install path users can just rerun the EXE.
+- If you use custom paths, pass the same `-InstallRoot` and `-DataDir` values when rerunning so the same instance is updated.
 
 ## Security Notes
 
