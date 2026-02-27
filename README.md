@@ -51,6 +51,36 @@ curl -fsSL https://raw.githubusercontent.com/spinninghypercube/kiss-this-dashboa
 | Linux systemd | `ops/bootstrap.sh` | `--port`, `--bind`, `--install-dir`, `--data-dir`, `--branch` |
 | Linux Docker | `ops/bootstrap-docker.sh` | `--port`, `--dir`, `--branch` |
 
+### Sample Commands (Defaults)
+
+Windows EXE (default install/update):
+
+- Download and run: `kiss-this-dashboard-bootstrap.exe` as Administrator
+
+Windows PowerShell (default install):
+
+```powershell
+powershell -NoProfile -ExecutionPolicy Bypass -Command "irm https://raw.githubusercontent.com/spinninghypercube/kiss-this-dashboard/main/ops/bootstrap-windows.ps1 | iex"
+```
+
+Linux Debian/Ubuntu systemd (default install):
+
+```bash
+curl -fsSL https://raw.githubusercontent.com/spinninghypercube/kiss-this-dashboard/main/ops/bootstrap.sh | sudo bash
+```
+
+Linux Debian/Ubuntu systemd (local reverse proxy on same host):
+
+```bash
+curl -fsSL https://raw.githubusercontent.com/spinninghypercube/kiss-this-dashboard/main/ops/bootstrap.sh | sudo bash -s -- --bind 127.0.0.1
+```
+
+Linux Docker (default install):
+
+```bash
+curl -fsSL https://raw.githubusercontent.com/spinninghypercube/kiss-this-dashboard/main/ops/bootstrap-docker.sh | bash
+```
+
 ## Updating
 
 Update by rerunning the installer you used initially:
