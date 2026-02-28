@@ -321,6 +321,42 @@ try {
 
 Remove-Item -LiteralPath `$MyInvocation.MyCommand.Path -Force -ErrorAction SilentlyContinue
 Write-Host 'KISS Startpage uninstalled.'
+Write-Host ''
+Write-Host 'The following tools were installed as dependencies:'
+Write-Host '  Git     - version control, used to clone and update the app'
+Write-Host '  Node.js - JavaScript runtime, used to build the frontend'
+Write-Host '  Go      - programming language, used to build the backend'
+Write-Host '  NSSM    - Windows service manager, used to run the app as a service'
+Write-Host ''
+
+`$deps = @(
+    @{ Name = 'Git';     Id = 'Git.Git';           Desc = 'version control tool' },
+    @{ Name = 'Node.js'; Id = 'OpenJS.NodeJS.LTS'; Desc = 'JavaScript runtime' },
+    @{ Name = 'Go';      Id = 'GoLang.Go';          Desc = 'programming language runtime' },
+    @{ Name = 'NSSM';    Id = 'NSSM.NSSM';          Desc = 'Windows service manager' }
+)
+
+`$kept = @()
+foreach (`$dep in `$deps) {
+    `$answer = Read-Host "Remove `$(`$dep.Name) (`$(`$dep.Desc))? (y/N)"
+    if (`$answer -match '^[Yy]') {
+        Write-Host "Removing `$(`$dep.Name)..."
+        & winget uninstall --id `$dep.Id --exact --silent 2>`$null
+    } else {
+        `$kept += `$dep.Name
+    }
+}
+
+if (`$kept.Count -gt 0) {
+    Write-Host ''
+    Write-Host "Kept: `$(`$kept -join ', '). You can remove them manually via:"
+    Write-Host '  Settings > Apps  -or-  winget uninstall --id <PackageId>'
+    Write-Host '  IDs: Git.Git  /  OpenJS.NodeJS.LTS  /  GoLang.Go  /  NSSM.NSSM'
+}
+
+Write-Host ''
+Write-Host 'Press any key to close...' -NoNewline
+`$null = [Console]::ReadKey(`$true)
 "@
         Set-Content -Path $uninstallerPath -Value $uninstallerContent -Encoding UTF8
 
