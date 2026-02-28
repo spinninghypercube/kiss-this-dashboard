@@ -189,7 +189,7 @@ try {
     Write-Step "Preparing install directories"
     if (-not (Test-Path $resolvedInstallRoot)) { $script:rb_installRoot = $true }
     New-Item -ItemType Directory -Path $resolvedInstallRoot -Force | Out-Null
-    $script:installedDepIds | ConvertTo-Json | Set-Content -Path $depsManifestPath -Encoding UTF8
+    ConvertTo-Json -InputObject @($script:installedDepIds) | Set-Content -Path $depsManifestPath -Encoding UTF8
     New-Item -ItemType Directory -Path $resolvedDataDir     -Force | Out-Null
     New-Item -ItemType Directory -Path $privateIconsDir     -Force | Out-Null
 
@@ -340,7 +340,7 @@ if (Test-Path `$appPath) { Remove-Item -Recurse -Force `$appPath }
 if (Test-Path `$launcher) { Remove-Item -Force `$launcher }
 
 if (-not `$KeepData) {
-    `$answer = Read-Host "Delete data at `$DataDir? This removes your config and icons. (y/N)"
+    `$answer = Read-Host "Delete config and icons? (y/N)"
     if (`$answer -match '^[Yy]') {
         Write-Host '[uninstall] Removing data...'
         if (Test-Path `$DataDir) { Remove-Item -Recurse -Force `$DataDir }
@@ -370,9 +370,14 @@ Write-Host 'KISS Startpage uninstalled.'
 `$manifestPath = Join-Path `$InstallRoot 'installed-deps.json'
 `$installedIds = @()
 if (Test-Path `$manifestPath) {
-    `$installedIds = (Get-Content `$manifestPath -Raw | ConvertFrom-Json)
+    `$parsed = Get-Content `$manifestPath -Raw | ConvertFrom-Json
+    if (`$parsed) { `$installedIds = @(`$parsed) }
 }
-`$deps = `$allDeps | Where-Object { `$installedIds -contains `$_.Id }
+`$deps = if (`$installedIds.Count -gt 0) {
+    `$allDeps | Where-Object { `$installedIds -contains `$_.Id }
+} else {
+    `$allDeps
+}
 
 if (`$deps.Count -gt 0) {
     Write-Host ''
