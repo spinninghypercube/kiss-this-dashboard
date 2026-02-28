@@ -386,7 +386,12 @@ Write-Host 'Press any key to close...' -NoNewline
         Write-Host ""
         Write-Host "Install complete."
         Write-Host "App version:  $appVersion"
-        Write-Host "Open:         http://${ip}:$Port/"
+        Write-Host ""
+        Write-Host "Open (this PC only, always works):  http://127.0.0.1:$Port/"
+        Write-Host "Open (local network, dynamic IP):   http://${ip}:$Port/"
+        Write-Host "  Note: the network IP above depends on DHCP and may change."
+        Write-Host "  For a stable network URL, set a static IP on this machine."
+        Write-Host ""
         Write-Host "Service:      $ServiceName"
         if ($NoAutoStart) { Write-Host "Auto-start:   disabled (start manually: Start-Service $ServiceName)" }
         Write-Host "Install root: $resolvedInstallRoot"
