@@ -133,6 +133,10 @@ function New-LnkShortcut {
     [System.Runtime.InteropServices.Marshal]::ReleaseComObject($wsh) | Out-Null
 }
 
+$logFile = "$env:TEMP\kiss-startpage-install.log"
+Start-Transcript -Path $logFile -Append | Out-Null
+Write-Host "Log: $logFile"
+
 try {
     if ($env:OS -ne "Windows_NT") { throw "This installer only supports Windows." }
     if ($Port -lt 1 -or $Port -gt 65535) { throw "Invalid --Port value: $Port" }
@@ -425,6 +429,7 @@ Write-Host 'Press any key to close...' -NoNewline
     Write-Host "INSTALL FAILED: $_" -ForegroundColor Red
     Write-Host ""
 } finally {
+    Stop-Transcript | Out-Null
     Write-Host ""
     Write-Host "Press any key to close..." -NoNewline
     $null = [Console]::ReadKey($true)
