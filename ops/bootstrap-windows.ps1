@@ -65,8 +65,10 @@ function Install-WingetPackage {
         throw "winget not found. Install $DisplayName manually, or install winget and rerun."
     }
     Write-Step "Installing $DisplayName ($PackageId) via winget"
-    $wingetOut = & winget install --id $PackageId --exact --accept-package-agreements --accept-source-agreements --silent --disable-interactivity 2>&1
-    if ($LASTEXITCODE -ne 0) { throw "Failed to install $DisplayName (exit $LASTEXITCODE)" }
+    Invoke-External -FilePath "winget" -Arguments @(
+        "install", "--id", $PackageId, "--exact",
+        "--accept-package-agreements", "--accept-source-agreements", "--silent"
+    ) -FailureMessage "Failed to install $DisplayName"
 }
 
 function Ensure-Command {
