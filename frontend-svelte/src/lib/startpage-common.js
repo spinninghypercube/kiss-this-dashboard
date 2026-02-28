@@ -197,15 +197,15 @@ function getButtonColorPair(tab, group, buttonIndex) {
   const mode = normalizeButtonColorMode(tab && tab.buttonColorMode);
 
   if (mode === BUTTON_COLOR_MODE_CYCLE_CUSTOM) {
-    const hueStep = clampNumber(dashboard && dashboard.buttonCycleHueStep, 1, 180, defaults.buttonCycleHueStep);
+    const hueStep = clampNumber(tab && tab.buttonCycleHueStep, 1, 180, defaults.buttonCycleHueStep);
     const saturation = clampNumber(
-      dashboard && dashboard.buttonCycleSaturation,
+      tab && tab.buttonCycleSaturation,
       0,
       100,
       defaults.buttonCycleSaturation
     );
     const lightness = clampNumber(
-      dashboard && dashboard.buttonCycleLightness,
+      tab && tab.buttonCycleLightness,
       0,
       100,
       defaults.buttonCycleLightness
@@ -214,12 +214,12 @@ function getButtonColorPair(tab, group, buttonIndex) {
   }
 
   if (mode === BUTTON_COLOR_MODE_SOLID_ALL) {
-    return createSolidButtonColor(dashboard && dashboard.buttonSolidColor);
+    return createSolidButtonColor(tab && tab.buttonSolidColor);
   }
 
   if (mode === BUTTON_COLOR_MODE_SOLID_PER_GROUP) {
     const groupColor = normalizeHexColor(group && group.buttonSolidColor);
-    const fallbackColor = normalizeHexColor(dashboard && dashboard.buttonSolidColor) || defaults.buttonSolidColor;
+    const fallbackColor = normalizeHexColor(tab && tab.buttonSolidColor) || defaults.buttonSolidColor;
     return createSolidButtonColor(groupColor || fallbackColor);
   }
 
@@ -443,8 +443,8 @@ function normalizeTab(tab, migrationTabs, fallbackLabel) {
 
   const id = tab && tab.id ? makeSafeTabId(tab.id) : createId("tab");
   const labelSource =
-    dashboard && typeof dashboard.label === "string" && dashboard.label.trim()
-      ? dashboard.label.trim()
+    tab && typeof tab.label === "string" && tab.label.trim()
+      ? tab.label.trim()
       : fallbackLabel || "Tab";
 
   return {
@@ -452,41 +452,41 @@ function normalizeTab(tab, migrationTabs, fallbackLabel) {
     id,
     label: labelSource,
     showLinkModeToggle:
-      dashboard && Object.prototype.hasOwnProperty.call(dashboard, "showLinkModeToggle")
-        ? Boolean(dashboard.showLinkModeToggle)
+      tab && Object.prototype.hasOwnProperty.call(tab, "showLinkModeToggle")
+        ? Boolean(tab.showLinkModeToggle)
         : true,
     enableInternalLinks:
-      dashboard && Object.prototype.hasOwnProperty.call(dashboard, "enableInternalLinks")
-        ? Boolean(dashboard.enableInternalLinks)
+      tab && Object.prototype.hasOwnProperty.call(tab, "enableInternalLinks")
+        ? Boolean(tab.enableInternalLinks)
         : false,
-    textColor: normalizeHexColor(dashboard && dashboard.textColor),
-    buttonTextColor: normalizeHexColor(dashboard && dashboard.buttonTextColor),
-    tabColor: normalizeHexColor(dashboard && dashboard.tabColor),
-    activeTabColor: normalizeHexColor(dashboard && dashboard.activeTabColor),
-    tabTextColor: normalizeHexColor(dashboard && dashboard.tabTextColor),
-    activeTabTextColor: normalizeHexColor(dashboard && dashboard.activeTabTextColor),
-    backgroundColor: normalizeHexColor(dashboard && dashboard.backgroundColor),
-    groupBackgroundColor: normalizeHexColor(dashboard && dashboard.groupBackgroundColor),
-    buttonColorMode: normalizeButtonColorMode(dashboard && dashboard.buttonColorMode),
+    textColor: normalizeHexColor(tab && tab.textColor),
+    buttonTextColor: normalizeHexColor(tab && tab.buttonTextColor),
+    tabColor: normalizeHexColor(tab && tab.tabColor),
+    activeTabColor: normalizeHexColor(tab && tab.activeTabColor),
+    tabTextColor: normalizeHexColor(tab && tab.tabTextColor),
+    activeTabTextColor: normalizeHexColor(tab && tab.activeTabTextColor),
+    backgroundColor: normalizeHexColor(tab && tab.backgroundColor),
+    groupBackgroundColor: normalizeHexColor(tab && tab.groupBackgroundColor),
+    buttonColorMode: normalizeButtonColorMode(tab && tab.buttonColorMode),
     buttonCycleHueStep: clampNumber(
-      dashboard && dashboard.buttonCycleHueStep,
+      tab && tab.buttonCycleHueStep,
       1,
       180,
       DEFAULT_BUTTON_COLOR_CYCLE_HUE_STEP
     ),
     buttonCycleSaturation: clampNumber(
-      dashboard && dashboard.buttonCycleSaturation,
+      tab && tab.buttonCycleSaturation,
       0,
       100,
       DEFAULT_BUTTON_COLOR_CYCLE_SATURATION
     ),
     buttonCycleLightness: clampNumber(
-      dashboard && dashboard.buttonCycleLightness,
+      tab && tab.buttonCycleLightness,
       0,
       100,
       DEFAULT_BUTTON_COLOR_CYCLE_LIGHTNESS
     ),
-    buttonSolidColor: normalizeHexColor(dashboard && dashboard.buttonSolidColor) || DEFAULT_BUTTON_COLOR_SOLID,
+    buttonSolidColor: normalizeHexColor(tab && tab.buttonSolidColor) || DEFAULT_BUTTON_COLOR_SOLID,
     themePresets,
     groups
   };
