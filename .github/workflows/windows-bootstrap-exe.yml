@@ -42,20 +42,20 @@ jobs:
           New-Item -Path dist -ItemType Directory -Force | Out-Null
           Import-Module ps2exe
           $ver = '${{ steps.version.outputs.app_version }}'
-          $versionedExe = "dist/kiss-this-dashboard-bootstrap-v$ver.exe"
+          $versionedExe = "dist/kiss-startpage-bootstrap-v$ver.exe"
           Invoke-ps2exe `
             -inputFile ops/bootstrap-windows.ps1 `
             -outputFile $versionedExe `
             -x64 `
             -requireAdmin `
-            -title "KISS this dashboard Installer v$ver" `
-            -description "One-shot Windows installer for KISS this dashboard v$ver"
-          Copy-Item -Path $versionedExe -Destination dist/kiss-this-dashboard-bootstrap.exe -Force
+            -title "KISS Startpage Installer v$ver" `
+            -description "One-shot Windows installer for KISS Startpage v$ver"
+          Copy-Item -Path $versionedExe -Destination dist/kiss-startpage-bootstrap.exe -Force
 
       - name: Upload Artifact
         uses: actions/upload-artifact@v4
         with:
-          name: kiss-this-dashboard-windows-installer
+          name: kiss-startpage-windows-installer
           path: dist/*.exe
 
       - name: Publish Rolling EXE Release

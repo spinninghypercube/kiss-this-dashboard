@@ -74,7 +74,7 @@ export function applyThemeCssVars(theme) {
   const root = document.documentElement;
   const set = (k, v) => root.style.setProperty(k, v);
 
-  // Dashboard vars
+  // Startpage vars
   set('--startpage-page-bg', t.backgroundColor);
   set('--startpage-group-bg', t.groupBackgroundColor);
   set('--startpage-group-border', t.groupBorderColor);
@@ -93,7 +93,7 @@ export function applyThemeCssVars(theme) {
   set('--startpage-group-inner-padding', sameColor ? '0' : '0.4rem');
   set('--startpage-group-title-inset', sameColor ? '0' : '0.75rem');
 
-  // Derive edit mode vars from dashboard colors
+  // Derive edit mode vars from startpage colors
   const editVars = deriveEditModeColors(t);
   for (const [k, v] of Object.entries(editVars)) {
     set(k, v);
@@ -101,7 +101,7 @@ export function applyThemeCssVars(theme) {
 }
 
 export function deriveEditModeColors(t) {
-  // All edit/admin mode CSS vars are derived from the user's dashboard colors
+  // All edit/admin mode CSS vars are derived from the user's startpage colors
   // No separate admin color config needed
   return {
     '--admin-bg': shadeColor(t.backgroundColor, -8),

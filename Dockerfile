@@ -15,7 +15,7 @@ FROM debian:bookworm-slim
 RUN apt-get update && apt-get install -y --no-install-recommends ca-certificates && rm -rf /var/lib/apt/lists/*
 WORKDIR /app
 
-COPY dashboard-default-config.json /app/dashboard-default-config.json
+COPY startpage-default-config.json /app/startpage-default-config.json
 COPY --from=frontend-build /src/frontend-svelte/dist /app/frontend-svelte/dist
 COPY --from=backend-build /out/kissdash-go /app/backend-go/kissdash-go
 
@@ -23,7 +23,7 @@ ENV DASH_BIND=0.0.0.0
 ENV DASH_PORT=8788
 ENV DASH_DATA_DIR=/data
 ENV DASH_PRIVATE_ICONS_DIR=/data/private-icons
-ENV DASH_DEFAULT_CONFIG=/app/dashboard-default-config.json
+ENV DASH_DEFAULT_CONFIG=/app/startpage-default-config.json
 ENV DASH_APP_ROOT=/app/frontend-svelte/dist
 
 EXPOSE 8788

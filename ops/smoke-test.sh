@@ -53,7 +53,7 @@ wait_for_health 20 1 || { echo "Service did not become healthy in time" >&2; exi
 HEALTH_JSON="$(curl -fsS "$BASE_URL/health")"
 echo "$HEALTH_JSON" | grep -q '"ok"' || { echo "Health check failed" >&2; exit 1; }
 
-echo "[2/6] Dashboard page"
+echo "[2/6] Startpage"
 curl -fsS "$BASE_URL/" >/dev/null
 
 echo "[3/6] Admin page"

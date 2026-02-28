@@ -104,7 +104,7 @@ function applyStartpageThemeCssVariables(themeLike, options) {
 
 export function applyAdminThemePreview(themeLike, defaults) {
   const def = defaults || DEFAULT_THEME;
-  const dashboardColor = normalizeHexColor(themeLike && themeLike.backgroundColor);
+  const startpageColor = normalizeHexColor(themeLike && themeLike.backgroundColor);
   const groupColor = normalizeHexColor(themeLike && themeLike.groupBackgroundColor);
   const pageTextColor = normalizeHexColor(themeLike && themeLike.textColor);
   const buttonTextColor = normalizeHexColor(themeLike && themeLike.buttonTextColor);
@@ -113,11 +113,11 @@ export function applyAdminThemePreview(themeLike, defaults) {
   const tabTextColor = normalizeHexColor(themeLike && themeLike.tabTextColor);
   const activeTabTextColor = normalizeHexColor(themeLike && themeLike.activeTabTextColor);
 
-  const dashboardSurfaceColor = dashboardColor || def.backgroundColor;
+  const startpageSurfaceColor = startpageColor || def.backgroundColor;
   const groupSurfaceColor = groupColor || def.groupBackgroundColor;
 
   applyStartpageThemeCssVariables(
-    { backgroundColor: dashboardColor, groupBackgroundColor: groupColor, textColor: pageTextColor,
+    { backgroundColor: startpageColor, groupBackgroundColor: groupColor, textColor: pageTextColor,
       buttonTextColor, tabColor, activeTabColor, tabTextColor, activeTabTextColor },
     { flatClassName: 'admin-group-shell-flat', setGroupRadius: false,
       defaultPageColor: def.backgroundColor, defaultGroupColor: def.groupBackgroundColor }
@@ -125,7 +125,7 @@ export function applyAdminThemePreview(themeLike, defaults) {
 
   const root = document.documentElement;
   const entryAccent = pickHighContrastColor(groupSurfaceColor);
-  const groupAccent = pickHighContrastColor(dashboardSurfaceColor);
+  const groupAccent = pickHighContrastColor(startpageSurfaceColor);
   root.style.setProperty('--admin-entry-add-accent', entryAccent);
   root.style.setProperty('--admin-entry-add-accent-soft', hexColorToRgba(entryAccent, 0.78));
   root.style.setProperty('--admin-entry-add-accent-hover-bg', hexColorToRgba(entryAccent, 0.1));
@@ -134,8 +134,8 @@ export function applyAdminThemePreview(themeLike, defaults) {
   root.style.setProperty('--admin-group-add-accent-hover-bg', hexColorToRgba(groupAccent, 0.1));
 
   const surfaceText = pickHighContrastColor(groupSurfaceColor);
-  const pageText = pickHighContrastColor(dashboardSurfaceColor);
-  const panelSurface = blendHexColors(dashboardSurfaceColor, '#0f172a', 0.72) || '#0f172a';
+  const pageText = pickHighContrastColor(startpageSurfaceColor);
+  const panelSurface = blendHexColors(startpageSurfaceColor, '#0f172a', 0.72) || '#0f172a';
   const panelText = pickHighContrastColor(panelSurface);
   const inputFocusColor = activeTabColor || tabColor || groupAccent || entryAccent || '#60a5fa';
   root.style.setProperty('--admin-surface-text-color', surfaceText);
@@ -144,7 +144,7 @@ export function applyAdminThemePreview(themeLike, defaults) {
   root.style.setProperty('--admin-page-text-muted', hexColorToRgba(pageText, 0.88));
   root.style.setProperty('--admin-panel-text-color', panelText);
   root.style.setProperty('--admin-panel-text-muted', hexColorToRgba(panelText, 0.88));
-  root.style.setProperty('--admin-input-bg', dashboardSurfaceColor);
+  root.style.setProperty('--admin-input-bg', startpageSurfaceColor);
   root.style.setProperty('--admin-input-text', pageText);
   root.style.setProperty('--admin-input-placeholder', hexColorToRgba(pageText, 0.72));
   root.style.setProperty('--admin-input-border', hexColorToRgba(pageText, 0.28));

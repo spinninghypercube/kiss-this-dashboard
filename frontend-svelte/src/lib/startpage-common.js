@@ -1,5 +1,5 @@
 const LINK_MODE_KEY = "homelabStartpageLinkMode";
-const ACTIVE_STARTPAGE_KEY = "homelabStartpageActiveDashboard";
+const ACTIVE_STARTPAGE_KEY = "homelabStartpageActiveTab";
 const BUTTON_COLOR_MODE_CYCLE_DEFAULT = "cycle-default";
 const BUTTON_COLOR_MODE_CYCLE_CUSTOM = "cycle-custom";
 const BUTTON_COLOR_MODE_SOLID_ALL = "solid-all";
@@ -192,9 +192,9 @@ function createSolidButtonColor(baseColor) {
   };
 }
 
-function getButtonColorPair(dashboard, group, buttonIndex) {
+function getButtonColorPair(tab, group, buttonIndex) {
   const defaults = getDefaultButtonColorOptions();
-  const mode = normalizeButtonColorMode(dashboard && dashboard.buttonColorMode);
+  const mode = normalizeButtonColorMode(tab && tab.buttonColorMode);
 
   if (mode === BUTTON_COLOR_MODE_CYCLE_CUSTOM) {
     const hueStep = clampNumber(dashboard && dashboard.buttonCycleHueStep, 1, 180, defaults.buttonCycleHueStep);
@@ -433,19 +433,19 @@ function normalizeThemePreset(preset, fallbackIndex = 1) {
   };
 }
 
-function normalizeDashboard(dashboard, migrationTabs, fallbackLabel) {
-  const groups = Array.isArray(dashboard && dashboard.groups)
-    ? dashboard.groups.map((group) => normalizeGroup(group, migrationTabs))
+function normalizeTab(tab, migrationTabs, fallbackLabel) {
+  const groups = Array.isArray(tab && tab.groups)
+    ? tab.groups.map((group) => normalizeGroup(group, migrationTabs))
     : [];
-  const themePresets = Array.isArray(dashboard && dashboard.themePresets)
-    ? dashboard.themePresets.map((preset, index) => normalizeThemePreset(preset, index + 1))
+  const themePresets = Array.isArray(tab && tab.themePresets)
+    ? tab.themePresets.map((preset, index) => normalizeThemePreset(preset, index + 1))
     : [];
 
-  const id = dashboard && dashboard.id ? makeSafeTabId(dashboard.id) : createId("dashboard");
+  const id = tab && tab.id ? makeSafeTabId(tab.id) : createId("tab");
   const labelSource =
     dashboard && typeof dashboard.label === "string" && dashboard.label.trim()
       ? dashboard.label.trim()
-      : fallbackLabel || "Dashboard";
+      : fallbackLabel || "Tab";
 
   return {
     ...getDefaultButtonColorOptions(),
@@ -492,46 +492,46 @@ function normalizeDashboard(dashboard, migrationTabs, fallbackLabel) {
   };
 }
 
-function normalizeDashboards(config, migrationTabs) {
+function normalizeTabs(config, migrationTabs) {
   if (Array.isArray(config.dashboards) && config.dashboards.length) {
     const usedIds = new Set();
     return config.dashboards
-      .map((dashboard, index) => normalizeDashboard(dashboard, migrationTabs, `Dashboard ${index + 1}`))
-      .map((dashboard) => {
-        let id = dashboard.id || createId("dashboard");
+      .map((tab, index) => normalizeTab(tab, migrationTabs, `Tab ${index + 1}`))
+      .map((tab) => {
+        let id = tab.id || createId("tab");
         let counter = 2;
         while (usedIds.has(id)) {
-          id = `${dashboard.id}-${counter}`;
+          id = `${tab.id}-${counter}`;
           counter += 1;
         }
         usedIds.add(id);
         return {
           id,
-          label: dashboard.label,
-          showLinkModeToggle: dashboard.showLinkModeToggle,
-          enableInternalLinks: dashboard.enableInternalLinks,
-          textColor: dashboard.textColor,
-          buttonTextColor: dashboard.buttonTextColor,
-          tabColor: dashboard.tabColor,
-          activeTabColor: dashboard.activeTabColor,
-          tabTextColor: dashboard.tabTextColor,
-          activeTabTextColor: dashboard.activeTabTextColor,
-          backgroundColor: dashboard.backgroundColor,
-          groupBackgroundColor: dashboard.groupBackgroundColor,
-          buttonColorMode: dashboard.buttonColorMode,
-          buttonCycleHueStep: dashboard.buttonCycleHueStep,
-          buttonCycleSaturation: dashboard.buttonCycleSaturation,
-          buttonCycleLightness: dashboard.buttonCycleLightness,
-          buttonSolidColor: dashboard.buttonSolidColor,
-          themePresets: dashboard.themePresets,
-          groups: dashboard.groups
+          label: tab.label,
+          showLinkModeToggle: tab.showLinkModeToggle,
+          enableInternalLinks: tab.enableInternalLinks,
+          textColor: tab.textColor,
+          buttonTextColor: tab.buttonTextColor,
+          tabColor: tab.tabColor,
+          activeTabColor: tab.activeTabColor,
+          tabTextColor: tab.tabTextColor,
+          activeTabTextColor: tab.activeTabTextColor,
+          backgroundColor: tab.backgroundColor,
+          groupBackgroundColor: tab.groupBackgroundColor,
+          buttonColorMode: tab.buttonColorMode,
+          buttonCycleHueStep: tab.buttonCycleHueStep,
+          buttonCycleSaturation: tab.buttonCycleSaturation,
+          buttonCycleLightness: tab.buttonCycleLightness,
+          buttonSolidColor: tab.buttonSolidColor,
+          themePresets: tab.themePresets,
+          groups: tab.groups
         };
       });
   }
 
   const legacyGroups = Array.isArray(config.groups) ? config.groups : [];
   return [
-    normalizeDashboard(
+    normalizeTab(
       {
         id: "dashboard-1",
         label: "Startpage 1",
@@ -543,15 +543,15 @@ function normalizeDashboards(config, migrationTabs) {
   ];
 }
 
-function normalizeGlobalThemePresets(config, dashboards) {
+function normalizeGlobalThemePresets(config, tabs) {
   const hasRootThemePresets =
     Boolean(config) && Object.prototype.hasOwnProperty.call(config, "themePresets");
   const sourcePresets = hasRootThemePresets
     ? Array.isArray(config.themePresets)
       ? config.themePresets
       : []
-    : dashboards.flatMap((dashboard) =>
-        Array.isArray(dashboard && dashboard.themePresets) ? dashboard.themePresets : []
+    : tabs.flatMap((tab) =>
+        Array.isArray(tab && tab.themePresets) ? tab.themePresets : []
       );
 
   const seenIds = new Set();
@@ -575,28 +575,28 @@ function normalizeGlobalThemePresets(config, dashboards) {
   return deduped;
 }
 
-function normalizeConfigTheme(inputTheme, dashboards) {
-  // If config.theme already exists, use it; otherwise migrate from first dashboard or use empty
+function normalizeConfigTheme(inputTheme, tabs) {
+  // If config.theme already exists, use it; otherwise migrate from first tab or use empty
   if (inputTheme && typeof inputTheme === "object") {
     return normalizeThemePresetTheme(inputTheme);
   }
-  // Migration: copy theme fields from first dashboard
-  const firstDashboard = Array.isArray(dashboards) && dashboards.length ? dashboards[0] : {};
-  return normalizeThemePresetTheme(firstDashboard);
+  // Migration: copy theme fields from first tab
+  const firstTab = Array.isArray(tabs) && tabs.length ? tabs[0] : {};
+  return normalizeThemePresetTheme(firstTab);
 }
 
 function normalizeConfig(inputConfig) {
   const config = inputConfig && typeof inputConfig === "object" ? inputConfig : {};
   const migrationTabs = normalizeMigrationTabs(config.tabs);
-  const dashboards = normalizeDashboards(config, migrationTabs);
-  const themePresets = normalizeGlobalThemePresets(config, dashboards);
-  const theme = normalizeConfigTheme(config.theme, dashboards);
+  const tabs = normalizeTabs(config, migrationTabs);
+  const themePresets = normalizeGlobalThemePresets(config, tabs);
+  const theme = normalizeConfigTheme(config.theme, tabs);
 
   return {
     title: normalizeTitle(config.title),
     theme,
     themePresets,
-    dashboards
+    tabs
   };
 }
 
@@ -645,7 +645,7 @@ async function fetchDefaultConfig() {
   });
 
   if (!response.ok) {
-    throw new Error("Failed to load default dashboard config.");
+    throw new Error("Failed to load default startpage config.");
   }
 
   return normalizeConfig(await response.json());
@@ -755,12 +755,12 @@ function getActiveStartpageId() {
   return localStorage.getItem(ACTIVE_STARTPAGE_KEY) || "";
 }
 
-function setActiveStartpageId(dashboardId) {
-  if (!dashboardId) {
+function setActiveStartpageId(tabId) {
+  if (!tabId) {
     localStorage.removeItem(ACTIVE_STARTPAGE_KEY);
     return;
   }
-  localStorage.setItem(ACTIVE_STARTPAGE_KEY, dashboardId);
+  localStorage.setItem(ACTIVE_STARTPAGE_KEY, tabId);
 }
 
 async function fetchVersion() {

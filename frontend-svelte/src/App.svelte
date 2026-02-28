@@ -90,8 +90,8 @@
   let editMode = false;
   let appVersion = '';
   let config = { title: 'KISS Startpage', theme: {}, dashboards: [], themePresets: [] };
-  let activeDashboardId = StartpageCommon.getActiveStartpageId();
-  let activeDashboard = null;
+  let activeTabId = StartpageCommon.getActiveStartpageId();
+  let activeTab = null;
   let loading = true;
   let loadError = '';
 
@@ -136,7 +136,7 @@
   // ─── Edit-mode modal state ────────────────────────────────────────────────────
 
   let actionModal = {
-    open: false, mode: '', dashboardId: '', groupId: '', buttonId: '',
+    open: false, mode: '', tabId: '', groupId: '', buttonId: '',
     title: 'Add Group', text: 'Create a new group.', titleLabel: 'Group Title',
     titlePlaceholder: 'New Group', titleValue: '', titleFieldVisible: true,
     confirmLabel: 'Add Group', confirmTone: 'is-link'
@@ -201,28 +201,28 @@
     config = clone(config);
   }
 
-  // ─── Dashboard lookup ─────────────────────────────────────────────────────────
+  // ─── Tab lookup ─────────────────────────────────────────────────────────
 
-  function getDashboardIndex(dashboardId) {
-    return (config.dashboards || []).findIndex((d) => d.id === dashboardId);
+  function getTabIndex(tabId) {
+    return (config.dashboards || []).findIndex((d) => d.id === tabId);
   }
 
-  function ensureActiveDashboard() {
+  function ensureActiveTab() {
     if (!Array.isArray(config.dashboards) || !config.dashboards.length) {
       config.dashboards = [{
-        id: StartpageCommon.createId('dashboard'), label: 'Startpage 1',
+        id: StartpageCommon.createId('tab'), label: 'Startpage 1',
         enableInternalLinks: false,
         showLinkModeToggle: true, themePresets: [], groups: []
       }];
     }
-    if (!activeDashboardId || getDashboardIndex(activeDashboardId) < 0) {
-      activeDashboardId = config.dashboards[0].id;
+    if (!activeTabId || getTabIndex(activeTabId) < 0) {
+      activeTabId = config.dashboards[0].id;
     }
   }
 
-  function getActiveDashboard() {
-    ensureActiveDashboard();
-    return config.dashboards[getDashboardIndex(activeDashboardId)] || null;
+  function getActiveTab() {
+    ensureActiveTab();
+    return config.dashboards[getTabIndex(activeTabId)] || null;
   }
 
   function getValidStartpageId(requestedId) {
@@ -234,14 +234,14 @@
     return dashboards[0].id;
   }
 
-  function setActiveDashboard(dashboardId) {
+  function setActiveTab(tabId) {
     hideMessage();
-    activeDashboardId = getValidStartpageId(dashboardId);
-    ensureActiveDashboard();
-    StartpageCommon.setActiveStartpageId(activeDashboardId);
+    activeTabId = getValidStartpageId(tabId);
+    ensureActiveTab();
+    StartpageCommon.setActiveStartpageId(activeTabId);
     accountPaneOpen = false;
     if (editMode) {
-      syncDraftsFromActiveDashboard();
+      syncDraftsFromActiveTab();
       applyCurrentAdminThemePreview();
     }
     // Theme is now global — no per-tab theme application needed
@@ -277,7 +277,7 @@
     return builtInDefault ? { ...builtInDefault.theme } : normalizeThemePresetTheme({});
   }
 
-  function applyDashboardTheme() {
+  function applyStartpageTheme() {
     // Apply global theme from config.theme (or themeDraft if in edit mode)
     const themeSource = editMode ? themeDraft : (config.theme || {});
     applyThemeCssVars(themeSource);
@@ -316,7 +316,7 @@
     const groups = Array.isArray(dashboard?.groups) ? dashboard.groups : [];
     const result = [];
     let colorIndex = 0;
-    // Merge global theme into dashboard for button color calculations
+    // Merge global theme into tab for button color calculations
     const themeSource = { ...dashboard, ...themeDraft };
     for (const group of groups) {
       const entries = [];
@@ -350,16 +350,16 @@
     loadError = '';
     try {
       config = StartpageCommon.normalizeConfig(await StartpageCommon.getConfig());
-      activeDashboardId = getValidStartpageId('');
-      ensureActiveDashboard();
-      StartpageCommon.setActiveStartpageId(activeDashboardId);
+      activeTabId = getValidStartpageId('');
+      ensureActiveTab();
+      StartpageCommon.setActiveStartpageId(activeTabId);
       // Initialize themeDraft from config.theme (migration: normalizeConfig handles it)
       themeDraft = normalizeTheme(config.theme || config.dashboards?.[0] || {});
       applyPageTitle();
-      applyDashboardTheme();
+      applyStartpageTheme();
     } catch (error) {
       console.error(error);
-      loadError = 'Failed to load dashboard config.';
+      loadError = 'Failed to load startpage config.';
     } finally {
       loading = false;
     }
@@ -367,10 +367,10 @@
 
   async function persistConfig(message = '') {
     config = StartpageCommon.normalizeConfig(config);
-    ensureActiveDashboard();
+    ensureActiveTab();
     config = StartpageCommon.normalizeConfig(await StartpageCommon.saveConfig(config));
-    ensureActiveDashboard();
-    syncDraftsFromActiveDashboard();
+    ensureActiveTab();
+    syncDraftsFromActiveTab();
     applyCurrentAdminThemePreview();
     // success notifications removed
   }
@@ -392,11 +392,11 @@
       authUser = status?.username || 'admin';
       authMustChangePassword = Boolean(status?.mustChangePassword);
       authenticated = true;
-      syncDraftsFromActiveDashboard();
+      syncDraftsFromActiveTab();
       applyCurrentAdminThemePreview();
       if (authMustChangePassword) {
         accountPaneOpen = true;
-        showMessage('First-time setup: change the account password before editing the dashboard.', 'is-warning');
+        showMessage('First-time setup: change the account password before editing the startpage.', 'is-warning');
       }
     } catch (error) {
       console.error(error);
@@ -413,7 +413,7 @@
     showThemeEditor = false;
     destroyAllSortables();
     hideMessage();
-    applyDashboardTheme();
+    applyStartpageTheme();
   }
 
   function toggleEditMode() {
@@ -447,13 +447,13 @@
     return `Custom theme ${Date.now()}`;
   }
 
-  function syncDraftsFromActiveDashboard() {
-    const dashboard = getActiveDashboard();
+  function syncDraftsFromActiveTab() {
+    const dashboard = getActiveTab();
     if (!dashboard) return;
     pageTitleDraft = dashboard.label || '';
     enableInternalLinksDraft = Boolean(dashboard.enableInternalLinks);
     showLinkToggleDraft = dashboard.showLinkModeToggle !== false;
-    // Theme is global — read from config.theme, not per-dashboard
+    // Theme is global — read from config.theme, not per-tab
     themeDraft = normalizeTheme(config.theme || {});
     if (!themePresetName.trim()) themePresetName = getNextCustomThemePresetName();
   }
@@ -587,8 +587,8 @@
 
   async function saveTabTitle() {
     hideMessage();
-    const dashboard = getActiveDashboard();
-    if (!dashboard) { showMessage('Dashboard not found.', 'is-danger'); return; }
+    const dashboard = getActiveTab();
+    if (!dashboard) { showMessage('Tab not found.', 'is-danger'); return; }
     const tabTitle = pageTitleDraft.trim();
     if (!tabTitle) { showMessage('Tab title cannot be empty.', 'is-danger'); pageTitleDraft = dashboard.label; return; }
     if (dashboard.label === tabTitle) return;
@@ -597,14 +597,14 @@
     await persistConfig('Tab title updated.');
   }
 
-  async function saveActiveDashboardSettings(options = {}) {
+  async function saveActiveTabSettings(options = {}) {
     hideMessage();
     const silentSuccess = Boolean(options.silentSuccess);
-    const dashboard = getActiveDashboard();
-    if (!dashboard) { showMessage('Dashboard not found.', 'is-danger'); return; }
+    const dashboard = getActiveTab();
+    if (!dashboard) { showMessage('Tab not found.', 'is-danger'); return; }
     dashboard.enableInternalLinks = Boolean(enableInternalLinksDraft);
     dashboard.showLinkModeToggle = Boolean(showLinkToggleDraft);
-    // Theme is now global — write to config.theme, not per-dashboard
+    // Theme is now global — write to config.theme, not per-tab
     config.theme = { ...themeDraft };
     touchConfig();
     await persistConfig(silentSuccess ? '' : 'Tab settings updated.');
@@ -612,7 +612,7 @@
 
   async function updateGroupTitle(group, nextTitle) {
     const trimmed = (nextTitle || '').trim();
-    if (!trimmed) { showMessage('Group title cannot be empty.', 'is-danger'); syncDraftsFromActiveDashboard(); return; }
+    if (!trimmed) { showMessage('Group title cannot be empty.', 'is-danger'); syncDraftsFromActiveTab(); return; }
     if (group.title === trimmed) return;
     group.title = trimmed;
     touchConfig();
@@ -649,40 +649,40 @@
   }
 
   function closeActionModal() {
-    actionModal = { ...actionModal, open: false, mode: '', dashboardId: '', groupId: '', buttonId: '' };
+    actionModal = { ...actionModal, open: false, mode: '', tabId: '', groupId: '', buttonId: '' };
   }
 
-  function openAddDashboardModal() {
+  function openAddTabModal() {
     openActionModal({
-      mode: 'add-dashboard', title: 'Add Dashboard', text: 'Create a new dashboard tab.',
-      titleLabel: 'Tab Title', titlePlaceholder: `Dashboard ${((config.dashboards || []).length || 0) + 1}`,
-      titleValue: '', titleFieldVisible: true, confirmLabel: 'Add Dashboard', confirmTone: 'is-link'
+      mode: 'add-tab', title: 'Add Tab', text: 'Create a new tab.',
+      titleLabel: 'Tab Title', titlePlaceholder: `Tab ${((config.dashboards || []).length || 0) + 1}`,
+      titleValue: '', titleFieldVisible: true, confirmLabel: 'Add Tab', confirmTone: 'is-link'
     });
   }
 
   function openAddGroupModal() {
     openActionModal({
-      mode: 'add-group', dashboardId: activeDashboardId, title: 'Add Group',
+      mode: 'add-group', tabId: activeTabId, title: 'Add Group',
       text: 'Create a new group.', titleLabel: 'Group Title', titlePlaceholder: 'New Group',
       titleValue: '', titleFieldVisible: true, confirmLabel: 'Add Group', confirmTone: 'is-link'
     });
   }
 
   function openDeleteGroupModal(group) {
-    const dashboard = getActiveDashboard();
+    const dashboard = getActiveTab();
     if (!dashboard || !group) return;
     openActionModal({
-      mode: 'delete-group', dashboardId: dashboard.id, groupId: group.id,
+      mode: 'delete-group', tabId: dashboard.id, groupId: group.id,
       title: 'Delete Group', text: `Delete group "${group.title}" and all buttons?`,
       titleValue: '', titleFieldVisible: false, confirmLabel: 'Delete Group', confirmTone: 'is-danger'
     });
   }
 
-  function openDeleteDashboardModal() {
-    const dashboard = getActiveDashboard();
+  function openDeleteTabModal() {
+    const dashboard = getActiveTab();
     if (!dashboard) return;
     openActionModal({
-      mode: 'delete-dashboard', dashboardId: dashboard.id, title: 'Delete Tab',
+      mode: 'delete-tab', tabId: dashboard.id, title: 'Delete Tab',
       text: `Delete tab "${dashboard.label}" and all its groups/buttons?`,
       titleValue: '', titleFieldVisible: false, confirmLabel: 'Delete Tab', confirmTone: 'is-danger'
     });
@@ -690,7 +690,7 @@
 
   function openDeleteButtonModal(groupId, buttonId, buttonName) {
     openActionModal({
-      mode: 'delete-button', dashboardId: activeDashboardId, groupId, buttonId,
+      mode: 'delete-button', tabId: activeTabId, groupId, buttonId,
       title: 'Delete Button', text: `Delete button "${buttonName}"?`,
       titleValue: '', titleFieldVisible: false, confirmLabel: 'Delete Button', confirmTone: 'is-danger'
     });
@@ -700,15 +700,15 @@
     hideMessage();
     const mode = actionModal.mode;
 
-    if (mode === 'add-dashboard') {
-      const label = (actionModal.titleValue || '').trim() || `Dashboard ${(config.dashboards || []).length + 1}`;
+    if (mode === 'add-tab') {
+      const label = (actionModal.titleValue || '').trim() || `Tab ${(config.dashboards || []).length + 1}`;
       const dashboard = { id: StartpageCommon.makeSafeTabId(label), label, enableInternalLinks: false, showLinkModeToggle: true, themePresets: [], groups: [] };
       const existingIds = new Set((config.dashboards || []).map((d) => d.id));
       let id = dashboard.id; let n = 2;
-      while (!id || existingIds.has(id)) { id = `${dashboard.id || 'dashboard'}-${n}`; n += 1; }
+      while (!id || existingIds.has(id)) { id = `${dashboard.id || 'tab'}-${n}`; n += 1; }
       dashboard.id = id;
       config.dashboards.push(dashboard);
-      activeDashboardId = dashboard.id;
+      activeTabId = dashboard.id;
       closeActionModal();
       await persistConfig('');
       return;
@@ -717,8 +717,8 @@
     if (mode === 'add-group') {
       const title = (actionModal.titleValue || '').trim();
       if (!title) { showMessage('Group title cannot be empty.', 'is-danger'); return; }
-      const dashboard = getActiveDashboard();
-      if (!dashboard) { closeActionModal(); showMessage('Dashboard not found.', 'is-danger'); return; }
+      const dashboard = getActiveTab();
+      if (!dashboard) { closeActionModal(); showMessage('Tab not found.', 'is-danger'); return; }
       dashboard.groups.push({ id: StartpageCommon.createId('group'), title, groupEnd: true, entries: [] });
       touchConfig();
       closeActionModal();
@@ -727,8 +727,8 @@
     }
 
     if (mode === 'delete-group') {
-      const dashboard = config.dashboards[getDashboardIndex(actionModal.dashboardId)];
-      if (!dashboard) { closeActionModal(); showMessage('Dashboard not found.', 'is-danger'); return; }
+      const dashboard = config.dashboards[getTabIndex(actionModal.tabId)];
+      if (!dashboard) { closeActionModal(); showMessage('Tab not found.', 'is-danger'); return; }
       const groupIndex = dashboard.groups.findIndex((g) => g.id === actionModal.groupId);
       if (groupIndex < 0) { closeActionModal(); showMessage('Group not found.', 'is-danger'); return; }
       dashboard.groups.splice(groupIndex, 1);
@@ -738,8 +738,8 @@
     }
 
     if (mode === 'delete-button') {
-      const dashboard = config.dashboards[getDashboardIndex(actionModal.dashboardId)];
-      if (!dashboard) { closeActionModal(); showMessage('Dashboard not found.', 'is-danger'); return; }
+      const dashboard = config.dashboards[getTabIndex(actionModal.tabId)];
+      if (!dashboard) { closeActionModal(); showMessage('Tab not found.', 'is-danger'); return; }
       const group = dashboard.groups.find((g) => g.id === actionModal.groupId);
       if (!group) { closeActionModal(); showMessage('Group not found.', 'is-danger'); return; }
       const buttonIndex = group.entries.findIndex((e) => e.id === actionModal.buttonId);
@@ -750,12 +750,12 @@
       return;
     }
 
-    if (mode === 'delete-dashboard') {
-      if ((config.dashboards || []).length <= 1) { closeActionModal(); showMessage('At least one dashboard is required.', 'is-danger'); return; }
-      const index = getDashboardIndex(actionModal.dashboardId);
-      if (index < 0) { closeActionModal(); showMessage('Dashboard not found.', 'is-danger'); return; }
+    if (mode === 'delete-tab') {
+      if ((config.dashboards || []).length <= 1) { closeActionModal(); showMessage('At least one tab is required.', 'is-danger'); return; }
+      const index = getTabIndex(actionModal.tabId);
+      if (index < 0) { closeActionModal(); showMessage('Tab not found.', 'is-danger'); return; }
       config.dashboards.splice(index, 1);
-      if (activeDashboardId === actionModal.dashboardId) activeDashboardId = config.dashboards[0]?.id || '';
+      if (activeTabId === actionModal.tabId) activeTabId = config.dashboards[0]?.id || '';
       touchConfig(); closeActionModal();
       await persistConfig('');
     }
@@ -764,7 +764,7 @@
   // ─── Edit-mode button modal ───────────────────────────────────────────────────
 
   function openButtonModal(groupId, buttonId = '') {
-    const dashboard = getActiveDashboard();
+    const dashboard = getActiveTab();
     const group = dashboard?.groups?.find((item) => item.id === groupId);
     if (!group) { showMessage('Group not found.', 'is-danger'); return; }
     let buttonEntry = null;
@@ -794,8 +794,8 @@
   async function handleButtonModalSave(event) {
     hideMessage();
     const d = event.detail;
-    const dashboard = config.dashboards[getDashboardIndex(activeDashboardId)];
-    if (!dashboard) { showMessage('Dashboard not found.', 'is-danger'); return; }
+    const dashboard = config.dashboards[getTabIndex(activeTabId)];
+    if (!dashboard) { showMessage('Tab not found.', 'is-danger'); return; }
     let groupIndex = dashboard.groups.findIndex((g) => g.id === d.groupId);
     if (groupIndex < 0) { showMessage('Group not found.', 'is-danger'); return; }
     let buttonEntry; let isNew = false;
@@ -855,11 +855,11 @@
     const orderedIds = collectChildIds(list, ':scope > li.tab-sort-item[data-dashboard-id]', 'dashboardId');
     if (!orderedIds.length && (config.dashboards || []).length) return;
     config.dashboards = reorderByIdsPreservingObjects(config.dashboards, orderedIds);
-    touchConfig(); ensureActiveDashboard(); syncDraftsFromActiveDashboard(); applyCurrentAdminThemePreview();
+    touchConfig(); ensureActiveTab(); syncDraftsFromActiveTab(); applyCurrentAdminThemePreview();
   }
 
   function applyGroupsOrderFromDom() {
-    const dashboard = getActiveDashboard();
+    const dashboard = getActiveTab();
     if (!dashboard) return;
     const container = document.getElementById('groupsEditor');
     if (!container) return;
@@ -870,7 +870,7 @@
   }
 
   function applyButtonOrdersFromDom() {
-    const dashboard = getActiveDashboard();
+    const dashboard = getActiveTab();
     if (!dashboard) return;
     const groups = Array.isArray(dashboard.groups) ? dashboard.groups : [];
     const groupsById = new Map(groups.map((g) => [g.id, g]));
@@ -980,7 +980,7 @@
   // ─── Edit-mode group decorations ──────────────────────────────────────────────
 
   function decoratedEditorGroups() {
-    const dashboard = getActiveDashboard();
+    const dashboard = getActiveTab();
     if (!dashboard) return [];
     // Use global theme (themeDraft) for button color settings
     const previewDashboard = { ...dashboard, ...themeDraft };
@@ -1030,7 +1030,7 @@
     });
     StartpageCommon.fetchVersion().then(v => { appVersion = v; });
 
-    const onResize = () => { applyDashboardTheme(); updateViewportState(); updateTabsOverflowState(); };
+    const onResize = () => { applyStartpageTheme(); updateViewportState(); updateTabsOverflowState(); };
     window.addEventListener('resize', onResize);
     if (typeof ResizeObserver !== 'undefined') {
       resizeObserver = new ResizeObserver(() => updateTabsOverflowState());
@@ -1048,15 +1048,15 @@
 
   // ─── Reactive declarations ────────────────────────────────────────────────────
 
-  $: { config; activeDashboardId; activeDashboard = getActiveDashboard(); }
-  $: { activeDashboard; currentLinkMode; viewGroups = (!editMode && activeDashboard) ? buttonDecorations(activeDashboard) : []; }
-  $: { editMode; authenticated; config; activeDashboardId; themeDraft; editorGroups = (editMode && authenticated) ? decoratedEditorGroups() : []; }
+  $: { config; activeTabId; activeTab = getActiveTab(); }
+  $: { activeTab; currentLinkMode; viewGroups = (!editMode && activeTab) ? buttonDecorations(activeTab) : []; }
+  $: { editMode; authenticated; config; activeTabId; themeDraft; editorGroups = (editMode && authenticated) ? decoratedEditorGroups() : []; }
   $: { config; builtInThemePresets = getResolvedBuiltInThemePresets(); savedThemePresets = getSavedThemePresets(); }
   $: { themePresetSelectValue; builtInThemePresets; savedThemePresets; themePresetSelected = getSelectedThemePreset(); canDeleteThemePreset = Boolean(themePresetSelected?.scope === 'saved'); }
   $: { themeDraft; themeButtonMode = StartpageCommon.normalizeButtonColorMode(themeDraft.buttonColorMode); }
-  $: showLinkToggle = !editMode && Boolean(activeDashboard?.enableInternalLinks);
+  $: showLinkToggle = !editMode && Boolean(activeTab?.enableInternalLinks);
   $: showEditInToolbar = true;
-  $: { loading; activeDashboard; config; if (!loading && activeDashboard && !editMode) { applyPageTitle(); applyDashboardTheme(); } }
+  $: { loading; activeTab; config; if (!loading && activeTab && !editMode) { applyPageTitle(); applyStartpageTheme(); } }
   // Ensure allPresets is available for ThemeEditor
   $: allPresets = [...(builtInThemePresets || []), ...(savedThemePresets || [])];
 </script>
@@ -1085,12 +1085,12 @@
             <ul bind:this={tabsListEl} id="mainTabsList">
               {#each config.dashboards as dashboard (dashboard.id)}
                 <li
-                  class={`${dashboard.id === activeDashboardId ? 'is-active ' : ''}${editMode ? 'tab-sort-item' : ''}`.trim()}
+                  class={`${dashboard.id === activeTabId ? 'is-active ' : ''}${editMode ? 'tab-sort-item' : ''}`.trim()}
                   data-tab-sort-item={editMode ? '' : undefined}
                   data-dashboard-id={editMode ? dashboard.id : undefined}
                   animate:flip={{ duration: DND_FLIP_DURATION_MS }}
                 >
-                  <a href="/" role="button" on:click|preventDefault={() => setActiveDashboard(dashboard.id)}>
+                  <a href="/" role="button" on:click|preventDefault={() => setActiveTab(dashboard.id)}>
                     {#if editMode && authenticated}
                       <span class="drag-handle tab-drag-handle" title={`Drag to reorder tab ${dashboard.label}`} aria-label={`Drag to reorder tab ${dashboard.label}`}>⋮⋮</span>
                     {/if}
@@ -1100,7 +1100,7 @@
               {/each}
               {#if editMode && authenticated}
                 <li class="add-tab">
-                  <a href="/edit" title="Add dashboard" aria-label="Add dashboard" on:click|preventDefault={openAddDashboardModal}>+</a>
+                  <a href="/edit" title="Add tab" aria-label="Add tab" on:click|preventDefault={openAddTabModal}>+</a>
                 </li>
               {/if}
             </ul>
@@ -1144,7 +1144,7 @@
       <div class="admin-topbar-shell mt-3 mb-5">
         <div class="admin-topbar">
           <div class="admin-topbar-left">
-            <h1 class="title is-4 mb-0">KISS dashboard</h1>
+            <h1 class="title is-4 mb-0">KISS Startpage</h1>
             <button id="accountLinkBtn" class={`button is-small account-link-btn ${authMustChangePassword ? 'is-warning' : 'is-link'} is-light`.trim()} type="button" on:click={() => (accountPaneOpen = !accountPaneOpen)}>{accountLinkLabel()}</button>
           </div>
           <div class="admin-topbar-actions">
@@ -1153,20 +1153,20 @@
         </div>
         {#if authMustChangePassword}
           <div class="notification is-warning is-light mt-3 mb-0">
-            First-time setup required: change the account password before editing or saving dashboard settings.
+            First-time setup required: change the account password before editing or saving startpage settings.
           </div>
         {/if}
       </div>
     {/if}
 
-    <!-- ─── View mode: dashboard ─────────────────────────────────────── -->
+    <!-- ─── View mode: startpage ─────────────────────────────────────── -->
     {#if !editMode}
-      <div id="dashboardContent">
+      <div id="startpageContent">
         {#if loading}
-          <div class="empty-state">Loading dashboard…</div>
+          <div class="empty-state">Loading startpage…</div>
         {:else if loadError}
           <div class="empty-state">{loadError}</div>
-        {:else if !activeDashboard || !viewGroups.length}
+        {:else if !activeTab || !viewGroups.length}
           <div class="empty-state">No groups configured yet. Flip the Edit toggle to add one.</div>
         {:else}
           {#each viewGroups as item}
@@ -1209,11 +1209,11 @@
             authMustChangePassword = Boolean(e.detail.mustChangePassword);
             authSetupRequired = false;
             authenticated = true;
-            syncDraftsFromActiveDashboard();
+            syncDraftsFromActiveTab();
             applyCurrentAdminThemePreview();
             if (authMustChangePassword) {
               accountPaneOpen = true;
-              showMessage('First-time setup: change the account password before editing the dashboard.', 'is-warning');
+              showMessage('First-time setup: change the account password before editing the startpage.', 'is-warning');
             }
           }}
         />
@@ -1224,7 +1224,7 @@
               <h2 class="title is-5">Tab Settings</h2>
               <div class="settings-actions">
                 <button id="liveColorEditorToggleBtn" class="button is-link is-light is-small" type="button" on:click={() => (showThemeEditor = !showThemeEditor)}>{showThemeEditor ? 'Hide theme editor' : 'Show theme editor'}</button>
-                <button id="deleteDashboardBtn" class="button is-danger is-light is-small delete-startpage-btn" type="button" disabled={(config.dashboards || []).length <= 1} on:click={openDeleteDashboardModal}>Delete tab</button>
+                <button id="deleteDashboardBtn" class="button is-danger is-light is-small delete-startpage-btn" type="button" disabled={(config.dashboards || []).length <= 1} on:click={openDeleteTabModal}>Delete tab</button>
               </div>
             </div>
             <div class="field mb-3">
@@ -1237,7 +1237,7 @@
               <div class="mode-switch mode-switch-plain">
                 <span class="mode-switch-label">Use internal and external links</span>
                 <label class="ios-switch" for="enableInternalLinksCheckbox">
-                  <input id="enableInternalLinksCheckbox" type="checkbox" bind:checked={enableInternalLinksDraft} on:change={() => saveActiveDashboardSettings().catch((err) => { console.error(err); showMessage('Failed to update tab settings.', 'is-danger'); })} aria-label="Use internal and external links" />
+                  <input id="enableInternalLinksCheckbox" type="checkbox" bind:checked={enableInternalLinksDraft} on:change={() => saveActiveTabSettings().catch((err) => { console.error(err); showMessage('Failed to update tab settings.', 'is-danger'); })} aria-label="Use internal and external links" />
                   <span class="ios-switch-slider"></span>
                 </label>
               </div>

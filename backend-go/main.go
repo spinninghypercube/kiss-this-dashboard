@@ -661,7 +661,7 @@ func (a *app) requireAuth(w http.ResponseWriter, r *http.Request, requirePasswor
 	}
 	if requirePasswordChanged && a.isPasswordChangeRequired(username) {
 		writeJSON(w, http.StatusForbidden, map[string]any{
-			"message": "First-time setup required: change the account password before editing the dashboard.",
+			"message": "First-time setup required: change the account password before editing the startpage.",
 		})
 		return "", false
 	}

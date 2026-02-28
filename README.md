@@ -117,7 +117,7 @@ Windows EXE update notes:
 ## Where Things Live
 
 - Linux systemd: app `/opt/kiss-startpage/current`, data `/var/lib/kiss-startpage`
-- Linux Docker: persistent data in `dashboard_data` volume
+- Linux Docker: persistent data in `startpage_data` volume
 - Windows: app/data under `C:\ProgramData\KissStartpage` by default
 
 ## Repo Layout
