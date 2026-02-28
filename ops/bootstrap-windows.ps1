@@ -136,7 +136,21 @@ function New-LnkShortcut {
 try {
     if ($env:OS -ne "Windows_NT") { throw "This installer only supports Windows." }
     if ($Port -lt 1 -or $Port -gt 65535) { throw "Invalid --Port value: $Port" }
-    if (-not (Test-IsWindowsAdmin)) { throw "Run PowerShell as Administrator before starting this installer." }
+    if (-not (Test-IsWindowsAdmin)) {
+        Write-Host "Requesting administrator privileges..."
+        $exePath = [System.Diagnostics.Process]::GetCurrentProcess().MainModule.FileName
+        $argParts = @()
+        foreach ($key in $PSBoundParameters.Keys) {
+            $val = $PSBoundParameters[$key]
+            if ($val -is [switch]) {
+                if ($val) { $argParts += "-$key" }
+            } else {
+                $argParts += "-$key `"$val`""
+            }
+        }
+        Start-Process -FilePath $exePath -ArgumentList ($argParts -join " ") -Verb RunAs
+        exit
+    }
 
     Refresh-Path
 
