@@ -216,7 +216,7 @@ try {
     Write-Step "Building frontend"
     Push-Location $frontendDir
     try {
-        Invoke-External -FilePath "npm.cmd" -Arguments @("ci")       -FailureMessage "npm ci failed" -SuppressStderr
+        Invoke-External -FilePath "npm.cmd" -Arguments @("ci", "--no-fund", "--no-audit") -FailureMessage "npm ci failed" -SuppressStderr
         Invoke-External -FilePath "npm.cmd" -Arguments @("run", "build") -FailureMessage "npm build failed" -SuppressStderr
     }
     finally { Pop-Location }
