@@ -420,5 +420,6 @@ try {
     Write-Host ""
 } finally {
     Write-Host ""
-    $null = Read-Host "Press Enter to close"
+    Write-Host "Press any key to close..." -NoNewline
+    $null = [Console]::ReadKey($true)
 }
