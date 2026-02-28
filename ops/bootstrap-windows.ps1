@@ -65,10 +65,8 @@ function Install-WingetPackage {
         throw "winget not found. Install $DisplayName manually, or install winget and rerun."
     }
     Write-Step "Installing $DisplayName ($PackageId) via winget"
-    Invoke-External -FilePath "winget" -Arguments @(
-        "install", "--id", $PackageId, "--exact",
-        "--accept-package-agreements", "--accept-source-agreements", "--silent"
-    ) -FailureMessage "Failed to install $DisplayName"
+    $wingetOut = & winget install --id $PackageId --exact --accept-package-agreements --accept-source-agreements --silent --disable-interactivity 2>&1
+    if ($LASTEXITCODE -ne 0) { throw "Failed to install $DisplayName (exit $LASTEXITCODE)" }
 }
 
 function Ensure-Command {
@@ -283,9 +281,9 @@ param([switch]`$KeepData)
 `$principal = New-Object Security.Principal.WindowsPrincipal(`$identity)
 if (-not `$principal.IsInRole([Security.Principal.WindowsBuiltInRole]::Administrator)) {
     Write-Host 'Requesting administrator privileges...'
-    `$args = "-NoProfile -ExecutionPolicy Bypass -File \`"`$(`$MyInvocation.MyCommand.Path)\`""
-    if (`$KeepData) { `$args += " -KeepData" }
-    Start-Process powershell.exe -ArgumentList `$args -Verb RunAs
+    `$ps1Args = @('-NoProfile', '-ExecutionPolicy', 'Bypass', '-File', `$MyInvocation.MyCommand.Path)
+    if (`$KeepData) { `$ps1Args += '-KeepData' }
+    Start-Process powershell.exe -ArgumentList `$ps1Args -Verb RunAs
     exit
 }
 
@@ -373,8 +371,7 @@ if (`$kept.Count -gt 0) {
 }
 
 Write-Host ''
-Write-Host 'Press any key to close...' -NoNewline
-`$null = [Console]::ReadKey(`$true)
+Read-Host 'Press Enter to close'
 "@
         Set-Content -Path $uninstallerPath -Value $uninstallerContent -Encoding UTF8
 
@@ -408,19 +405,18 @@ Write-Host 'Press any key to close...' -NoNewline
         # ── Summary ──────────────────────────────────────────────────────────────
         Write-Host ""
         Write-Host "Install complete."
+        Write-Host "  http://127.0.0.1:$Port/    (this PC — always works)"
+        Write-Host "  http://${ip}:$Port/    (local network — IP may change with DHCP)"
+        Write-Host ""
         Write-Host "App version:  $appVersion"
-        Write-Host ""
-        Write-Host "Open (this PC only, always works):  http://127.0.0.1:$Port/"
-        Write-Host "Open (local network, dynamic IP):   http://${ip}:$Port/"
-        Write-Host "  Note: the network IP above depends on DHCP and may change."
-        Write-Host "  For a stable network URL, set a static IP on this machine."
-        Write-Host ""
         Write-Host "Service:      $ServiceName"
         if ($NoAutoStart) { Write-Host "Auto-start:   disabled (start manually: Start-Service $ServiceName)" }
         Write-Host "Install root: $resolvedInstallRoot"
         Write-Host "Data dir:     $resolvedDataDir"
         Write-Host "Uninstall:    Settings > Apps, or Start Menu > KISS Startpage > Uninstall"
         if (-not $healthy) { Write-Host "WARNING: health check timed out — verify with: nssm status $ServiceName" }
+        Write-Host ""
+        Write-Host "Note: the network URL uses a DHCP-assigned IP. For a permanent link, assign a static IP on this PC."
     }
 
 
