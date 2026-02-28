@@ -419,13 +419,12 @@ Write-Host 'Press any key to close...' -NoNewline
         if (-not $healthy) { Write-Host "WARNING: health check timed out — verify with: nssm status $ServiceName" }
     }
 
-    Write-Host ""
-    Write-Host "Press any key to close..." -NoNewline
-    $null = [Console]::ReadKey($true)
 
 } catch {
     Write-Host ""
     Write-Host "INSTALL FAILED: $_" -ForegroundColor Red
+    Write-Host ""
+} finally {
     Write-Host ""
     Write-Host "Press any key to close..." -NoNewline
     $null = [Console]::ReadKey($true)
