@@ -2,10 +2,10 @@
   import { flip } from 'svelte/animate';
   import { afterUpdate, onDestroy, onMount, tick } from 'svelte';
   import Sortable from 'sortablejs';
-  import './styles/dashboard.css';
+  import './styles/startpage.css';
   import './styles/edit.css';
-  import { DashboardCommon, DEFAULT_THEME, normalizeHexColorLoose, clampInteger, iconSource } from './lib/dashboard-common.js';
-  import { DashboardUI, applyAdminThemePreview } from './lib/dashboard-ui.js';
+  import { StartpageCommon, DEFAULT_THEME, normalizeHexColorLoose, clampInteger, iconSource } from './lib/startpage-common.js';
+  import { StartpageUI, applyAdminThemePreview } from './lib/startpage-ui.js';
   import { normalizeTheme, applyThemeCssVars, COLOR_GROUPS, THEME_DEFAULTS } from './lib/theme.js';
   import LoginView from './components/LoginView.svelte';
   import AccountPane from './components/AccountPane.svelte';
@@ -14,7 +14,7 @@
 
   // ─── Constants ────────────────────────────────────────────────────────────────
 
-  const DEFAULT_BUTTON_COLOR_OPTIONS = DashboardCommon.getDefaultButtonColorOptions();
+  const DEFAULT_BUTTON_COLOR_OPTIONS = StartpageCommon.getDefaultButtonColorOptions();
   const DND_FLIP_DURATION_MS = 160;
 
   /** Returns #ffffff or #000000 for a high-contrast 2px border on a color swatch. */
@@ -89,15 +89,15 @@
 
   let editMode = false;
   let appVersion = '';
-  let config = { title: 'KISS this dashboard', theme: {}, dashboards: [], themePresets: [] };
-  let activeDashboardId = DashboardCommon.getActiveDashboardId();
+  let config = { title: 'KISS Startpage', theme: {}, dashboards: [], themePresets: [] };
+  let activeDashboardId = StartpageCommon.getActiveStartpageId();
   let activeDashboard = null;
   let loading = true;
   let loadError = '';
 
   // ─── View-mode state ──────────────────────────────────────────────────────────
 
-  let currentLinkMode = DashboardCommon.getLinkMode();
+  let currentLinkMode = StartpageCommon.getLinkMode();
   let viewGroups = [];
   let tabsScrollEl;
   let tabsListEl;
@@ -162,7 +162,7 @@
   let themePresetSelected = null;
   let canDeleteThemePreset = false;
   let editorGroups = [];
-  let themeButtonMode = DashboardCommon.normalizeButtonColorMode(themeDraft.buttonColorMode);
+  let themeButtonMode = StartpageCommon.normalizeButtonColorMode(themeDraft.buttonColorMode);
 
   // ─── Helpers ──────────────────────────────────────────────────────────────────
 
@@ -175,7 +175,7 @@
     }, 500);
   }
 
-  function clone(value) { return DashboardCommon.clone(value); }
+  function clone(value) { return StartpageCommon.clone(value); }
 
   function normalizeLinkMode(mode) { return mode === 'internal' ? 'internal' : 'external'; }
 
@@ -210,7 +210,7 @@
   function ensureActiveDashboard() {
     if (!Array.isArray(config.dashboards) || !config.dashboards.length) {
       config.dashboards = [{
-        id: DashboardCommon.createId('dashboard'), label: 'Dashboard 1',
+        id: StartpageCommon.createId('dashboard'), label: 'Startpage 1',
         enableInternalLinks: false,
         showLinkModeToggle: true, themePresets: [], groups: []
       }];
@@ -225,20 +225,20 @@
     return config.dashboards[getDashboardIndex(activeDashboardId)] || null;
   }
 
-  function getValidDashboardId(requestedId) {
+  function getValidStartpageId(requestedId) {
     const dashboards = Array.isArray(config?.dashboards) ? config.dashboards : [];
     if (!dashboards.length) return '';
     if (requestedId && dashboards.some((d) => d.id === requestedId)) return requestedId;
-    const saved = DashboardCommon.getActiveDashboardId();
+    const saved = StartpageCommon.getActiveStartpageId();
     if (saved && dashboards.some((d) => d.id === saved)) return saved;
     return dashboards[0].id;
   }
 
   function setActiveDashboard(dashboardId) {
     hideMessage();
-    activeDashboardId = getValidDashboardId(dashboardId);
+    activeDashboardId = getValidStartpageId(dashboardId);
     ensureActiveDashboard();
-    DashboardCommon.setActiveDashboardId(activeDashboardId);
+    StartpageCommon.setActiveStartpageId(activeDashboardId);
     accountPaneOpen = false;
     if (editMode) {
       syncDraftsFromActiveDashboard();
@@ -252,19 +252,19 @@
   function normalizeThemePresetTheme(theme) {
     const defaults = DEFAULT_BUTTON_COLOR_OPTIONS;
     return {
-      backgroundColor:      DashboardUI.normalizeHexColor(theme?.backgroundColor)      || DEFAULT_THEME.backgroundColor,
-      groupBackgroundColor: DashboardUI.normalizeHexColor(theme?.groupBackgroundColor) || DEFAULT_THEME.groupBackgroundColor,
-      textColor:            DashboardUI.normalizeHexColor(theme?.textColor)            || DEFAULT_THEME.textColor,
-      buttonTextColor:      DashboardUI.normalizeHexColor(theme?.buttonTextColor)      || DEFAULT_THEME.buttonTextColor,
-      tabColor:             DashboardUI.normalizeHexColor(theme?.tabColor)             || DEFAULT_THEME.tabColor,
-      activeTabColor:       DashboardUI.normalizeHexColor(theme?.activeTabColor)       || DEFAULT_THEME.activeTabColor,
-      tabTextColor:         DashboardUI.normalizeHexColor(theme?.tabTextColor)         || DEFAULT_THEME.tabTextColor,
-      activeTabTextColor:   DashboardUI.normalizeHexColor(theme?.activeTabTextColor)   || DEFAULT_THEME.activeTabTextColor,
-      buttonColorMode:      DashboardCommon.normalizeButtonColorMode(theme?.buttonColorMode),
+      backgroundColor:      StartpageUI.normalizeHexColor(theme?.backgroundColor)      || DEFAULT_THEME.backgroundColor,
+      groupBackgroundColor: StartpageUI.normalizeHexColor(theme?.groupBackgroundColor) || DEFAULT_THEME.groupBackgroundColor,
+      textColor:            StartpageUI.normalizeHexColor(theme?.textColor)            || DEFAULT_THEME.textColor,
+      buttonTextColor:      StartpageUI.normalizeHexColor(theme?.buttonTextColor)      || DEFAULT_THEME.buttonTextColor,
+      tabColor:             StartpageUI.normalizeHexColor(theme?.tabColor)             || DEFAULT_THEME.tabColor,
+      activeTabColor:       StartpageUI.normalizeHexColor(theme?.activeTabColor)       || DEFAULT_THEME.activeTabColor,
+      tabTextColor:         StartpageUI.normalizeHexColor(theme?.tabTextColor)         || DEFAULT_THEME.tabTextColor,
+      activeTabTextColor:   StartpageUI.normalizeHexColor(theme?.activeTabTextColor)   || DEFAULT_THEME.activeTabTextColor,
+      buttonColorMode:      StartpageCommon.normalizeButtonColorMode(theme?.buttonColorMode),
       buttonCycleHueStep:   clampInteger(theme?.buttonCycleHueStep, 1, 180, defaults.buttonCycleHueStep),
       buttonCycleSaturation: clampInteger(theme?.buttonCycleSaturation, 0, 100, defaults.buttonCycleSaturation),
       buttonCycleLightness: clampInteger(theme?.buttonCycleLightness, 0, 100, defaults.buttonCycleLightness),
-      buttonSolidColor:     DashboardUI.normalizeHexColor(theme?.buttonSolidColor) || defaults.buttonSolidColor
+      buttonSolidColor:     StartpageUI.normalizeHexColor(theme?.buttonSolidColor) || defaults.buttonSolidColor
     };
   }
 
@@ -281,9 +281,9 @@
     // Apply global theme from config.theme (or themeDraft if in edit mode)
     const themeSource = editMode ? themeDraft : (config.theme || {});
     applyThemeCssVars(themeSource);
-    // Also apply the DashboardUI vars for nav tab contrast and switch colors
-    DashboardUI.applyDashboardThemeCssVariables(themeSource, {
-      flatClassName: 'dashboard-group-shell-flat',
+    // Also apply the StartpageUI vars for nav tab contrast and switch colors
+    StartpageUI.applyStartpageThemeCssVariables(themeSource, {
+      flatClassName: 'startpage-group-shell-flat',
       groupRadius: '0.85rem', setGroupRadius: true,
       defaultPageColor: THEME_DEFAULTS.backgroundColor,
       defaultGroupColor: THEME_DEFAULTS.groupBackgroundColor
@@ -296,20 +296,20 @@
   }
 
   function applyPageTitle() {
-    document.title = (config?.title || '').toString().trim() || 'KISS this dashboard';
+    document.title = (config?.title || '').toString().trim() || 'KISS Startpage';
   }
 
   // ─── View-mode helpers ────────────────────────────────────────────────────────
 
   function setLinkMode(mode) {
     currentLinkMode = normalizeLinkMode(mode);
-    DashboardCommon.setLinkMode(currentLinkMode);
+    StartpageCommon.setLinkMode(currentLinkMode);
   }
 
   function buttonResolvedHref(entry, dashboard) {
     const effectiveMode = dashboard?.enableInternalLinks && currentLinkMode === 'internal' ? 'internal' : 'external';
     const raw = entry?.links && typeof entry.links[effectiveMode] === 'string' ? entry.links[effectiveMode].trim() : '';
-    return effectiveMode === 'external' ? DashboardCommon.normalizeExternalLinkHref(raw) : raw;
+    return effectiveMode === 'external' ? StartpageCommon.normalizeExternalLinkHref(raw) : raw;
   }
 
   function buttonDecorations(dashboard) {
@@ -321,7 +321,7 @@
     for (const group of groups) {
       const entries = [];
       for (const entry of Array.isArray(group?.entries) ? group.entries : []) {
-        const color = DashboardCommon.getButtonColorPair(themeSource, group, colorIndex);
+        const color = StartpageCommon.getButtonColorPair(themeSource, group, colorIndex);
         colorIndex += 1;
         entries.push({ entry, color, href: buttonResolvedHref(entry, dashboard), iconSrc: iconSource(entry) });
       }
@@ -349,10 +349,10 @@
     loading = true;
     loadError = '';
     try {
-      config = DashboardCommon.normalizeConfig(await DashboardCommon.getConfig());
-      activeDashboardId = getValidDashboardId('');
+      config = StartpageCommon.normalizeConfig(await StartpageCommon.getConfig());
+      activeDashboardId = getValidStartpageId('');
       ensureActiveDashboard();
-      DashboardCommon.setActiveDashboardId(activeDashboardId);
+      StartpageCommon.setActiveStartpageId(activeDashboardId);
       // Initialize themeDraft from config.theme (migration: normalizeConfig handles it)
       themeDraft = normalizeTheme(config.theme || config.dashboards?.[0] || {});
       applyPageTitle();
@@ -366,9 +366,9 @@
   }
 
   async function persistConfig(message = '') {
-    config = DashboardCommon.normalizeConfig(config);
+    config = StartpageCommon.normalizeConfig(config);
     ensureActiveDashboard();
-    config = DashboardCommon.normalizeConfig(await DashboardCommon.saveConfig(config));
+    config = StartpageCommon.normalizeConfig(await StartpageCommon.saveConfig(config));
     ensureActiveDashboard();
     syncDraftsFromActiveDashboard();
     applyCurrentAdminThemePreview();
@@ -381,7 +381,7 @@
     if (window.history?.pushState) window.history.pushState(null, '', '/edit');
     editMode = true;
     try {
-      const status = await DashboardCommon.getAuthStatus();
+      const status = await StartpageCommon.getAuthStatus();
       if (!status?.authenticated) {
         authSetupRequired = Boolean(status?.setupRequired);
         authenticated = false;
@@ -422,7 +422,7 @@
 
   async function logoutSubmit() {
     hideMessage();
-    try { await DashboardCommon.logout(); } catch (error) { console.warn(error); }
+    try { await StartpageCommon.logout(); } catch (error) { console.warn(error); }
     authUser = '';
     exitEditMode();
   }
@@ -463,7 +463,7 @@
   function setThemeField(key, value, { commit = false } = {}) {
     const next = { ...themeDraft };
     if (key === 'buttonColorMode') {
-      next[key] = DashboardCommon.normalizeButtonColorMode(value);
+      next[key] = StartpageCommon.normalizeButtonColorMode(value);
     } else if (key === 'buttonCycleHueStep') {
       next[key] = clampInteger(value, 1, 180, DEFAULT_BUTTON_COLOR_OPTIONS.buttonCycleHueStep);
     } else if (key === 'buttonCycleSaturation') {
@@ -560,7 +560,7 @@
     if (!name) { showMessage('Preset name is required.', 'is-danger'); return; }
     const saved = getSavedThemePresets();
     const existingIndex = saved.findIndex((p) => p.name.trim().toLowerCase() === name.toLowerCase());
-    const presetId = existingIndex >= 0 ? saved[existingIndex].id : DashboardCommon.createId('theme');
+    const presetId = existingIndex >= 0 ? saved[existingIndex].id : StartpageCommon.createId('theme');
     const nextPreset = { id: presetId, name, theme: normalizeTheme(themeDraft) };
     const nextSaved = saved.slice();
     if (existingIndex >= 0) { nextSaved.splice(existingIndex, 1, nextPreset); } else { nextSaved.push(nextPreset); }
@@ -633,7 +633,7 @@
   }
 
   function getGroupButtonSolidColor(group) {
-    return DashboardUI.normalizeHexColor(group?.buttonSolidColor) || DashboardUI.normalizeHexColor(themeDraft.buttonSolidColor) || DEFAULT_BUTTON_COLOR_OPTIONS.buttonSolidColor;
+    return StartpageUI.normalizeHexColor(group?.buttonSolidColor) || StartpageUI.normalizeHexColor(themeDraft.buttonSolidColor) || DEFAULT_BUTTON_COLOR_OPTIONS.buttonSolidColor;
   }
 
   function setGroupButtonSolidColor(group, value, commit = false) {
@@ -702,7 +702,7 @@
 
     if (mode === 'add-dashboard') {
       const label = (actionModal.titleValue || '').trim() || `Dashboard ${(config.dashboards || []).length + 1}`;
-      const dashboard = { id: DashboardCommon.makeSafeTabId(label), label, enableInternalLinks: false, showLinkModeToggle: true, themePresets: [], groups: [] };
+      const dashboard = { id: StartpageCommon.makeSafeTabId(label), label, enableInternalLinks: false, showLinkModeToggle: true, themePresets: [], groups: [] };
       const existingIds = new Set((config.dashboards || []).map((d) => d.id));
       let id = dashboard.id; let n = 2;
       while (!id || existingIds.has(id)) { id = `${dashboard.id || 'dashboard'}-${n}`; n += 1; }
@@ -719,7 +719,7 @@
       if (!title) { showMessage('Group title cannot be empty.', 'is-danger'); return; }
       const dashboard = getActiveDashboard();
       if (!dashboard) { closeActionModal(); showMessage('Dashboard not found.', 'is-danger'); return; }
-      dashboard.groups.push({ id: DashboardCommon.createId('group'), title, groupEnd: true, entries: [] });
+      dashboard.groups.push({ id: StartpageCommon.createId('group'), title, groupEnd: true, entries: [] });
       touchConfig();
       closeActionModal();
       await persistConfig('Group added.');
@@ -800,7 +800,7 @@
     if (groupIndex < 0) { showMessage('Group not found.', 'is-danger'); return; }
     let buttonEntry; let isNew = false;
     if (d.isNew) {
-      buttonEntry = { id: DashboardCommon.createId('button'), name: '', icon: '', iconData: '', links: { external: '', internal: '' } };
+      buttonEntry = { id: StartpageCommon.createId('button'), name: '', icon: '', iconData: '', links: { external: '', internal: '' } };
       isNew = true;
     } else {
       const pos = findButtonPosition(dashboard, d.buttonId);
@@ -988,7 +988,7 @@
     let colorIndex = 0;
     return groups.map((group) => {
       const entries = (Array.isArray(group.entries) ? group.entries : []).map((buttonEntry) => {
-        const color = DashboardCommon.getButtonColorPair(previewDashboard, group, colorIndex);
+        const color = StartpageCommon.getButtonColorPair(previewDashboard, group, colorIndex);
         colorIndex += 1;
         return { id: buttonEntry.id, buttonEntry, color, iconSrc: iconSource(buttonEntry) };
       });
@@ -1028,7 +1028,7 @@
     loadConfig().then(() => {
       if (startInEditMode) enterEditMode();
     });
-    DashboardCommon.fetchVersion().then(v => { appVersion = v; });
+    StartpageCommon.fetchVersion().then(v => { appVersion = v; });
 
     const onResize = () => { applyDashboardTheme(); updateViewportState(); updateTabsOverflowState(); };
     window.addEventListener('resize', onResize);
@@ -1053,7 +1053,7 @@
   $: { editMode; authenticated; config; activeDashboardId; themeDraft; editorGroups = (editMode && authenticated) ? decoratedEditorGroups() : []; }
   $: { config; builtInThemePresets = getResolvedBuiltInThemePresets(); savedThemePresets = getSavedThemePresets(); }
   $: { themePresetSelectValue; builtInThemePresets; savedThemePresets; themePresetSelected = getSelectedThemePreset(); canDeleteThemePreset = Boolean(themePresetSelected?.scope === 'saved'); }
-  $: { themeDraft; themeButtonMode = DashboardCommon.normalizeButtonColorMode(themeDraft.buttonColorMode); }
+  $: { themeDraft; themeButtonMode = StartpageCommon.normalizeButtonColorMode(themeDraft.buttonColorMode); }
   $: showLinkToggle = !editMode && Boolean(activeDashboard?.enableInternalLinks);
   $: showEditInToolbar = true;
   $: { loading; activeDashboard; config; if (!loading && activeDashboard && !editMode) { applyPageTitle(); applyDashboardTheme(); } }
@@ -1071,7 +1071,7 @@
 </svelte:head>
 
 <section class="section">
-  <div class={editMode ? 'admin-shell' : 'dashboard-shell'}>
+  <div class={editMode ? 'admin-shell' : 'startpage-shell'}>
 
     {#if editMode}
       <div id="messageBox" class={`notification ${messageVisible ? '' : 'is-hidden'} ${messageTone}`.trim()}>{messageText}</div>
@@ -1113,7 +1113,7 @@
         <div class="toolbar-mode-row">
           {#if showLinkToggle}
             <div class="toolbar-mode-left">
-              <div class="mode-switch dashboard-link-mode">
+              <div class="mode-switch startpage-link-mode">
                 <span class="mode-switch-label">Use internal links</span>
                 <label class="ios-switch" for="linkModeToggle">
                   <input id="linkModeToggle" type="checkbox" checked={currentLinkMode === 'internal'} on:change={(e) => setLinkMode(e.currentTarget.checked ? 'internal' : 'external')} aria-label="Switch between external and internal links" />
@@ -1124,7 +1124,7 @@
           {/if}
           {#if showEditInToolbar}
             <div class="toolbar-mode-actions">
-              <div class="mode-switch dashboard-link-mode nav-edit-mode-toggle" role="button" tabindex="0"
+              <div class="mode-switch startpage-link-mode nav-edit-mode-toggle" role="button" tabindex="0"
                 on:click={(e) => { if (!e.target?.closest?.('.ios-switch')) toggleEditMode(); }}
                 on:keydown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); toggleEditMode(); } }}>
                 <span class="mode-switch-label">Edit</span>
@@ -1219,18 +1219,18 @@
         />
       {:else}
         <div id="editorPane">
-          <div class="box panel-box dashboard-settings-box">
+          <div class="box panel-box startpage-settings-box">
             <div class="settings-head">
               <h2 class="title is-5">Tab Settings</h2>
               <div class="settings-actions">
                 <button id="liveColorEditorToggleBtn" class="button is-link is-light is-small" type="button" on:click={() => (showThemeEditor = !showThemeEditor)}>{showThemeEditor ? 'Hide theme editor' : 'Show theme editor'}</button>
-                <button id="deleteDashboardBtn" class="button is-danger is-light is-small delete-dashboard-btn" type="button" disabled={(config.dashboards || []).length <= 1} on:click={openDeleteDashboardModal}>Delete tab</button>
+                <button id="deleteDashboardBtn" class="button is-danger is-light is-small delete-startpage-btn" type="button" disabled={(config.dashboards || []).length <= 1} on:click={openDeleteDashboardModal}>Delete tab</button>
               </div>
             </div>
             <div class="field mb-3">
               <label class="label" for="pageTitleInput">Tab Title</label>
               <div class="title-editor">
-                <input id="pageTitleInput" class="input" type="text" maxlength="80" placeholder="Dashboard 1" bind:value={pageTitleDraft} on:keydown={(e)=> e.key === 'Enter' && e.currentTarget.blur()} on:blur={() => saveTabTitle().catch((err) => { console.error(err); showMessage('Failed to update tab title.', 'is-danger'); })} />
+                <input id="pageTitleInput" class="input" type="text" maxlength="80" placeholder="Startpage 1" bind:value={pageTitleDraft} on:keydown={(e)=> e.key === 'Enter' && e.currentTarget.blur()} on:blur={() => saveTabTitle().catch((err) => { console.error(err); showMessage('Failed to update tab title.', 'is-danger'); })} />
               </div>
             </div>
             <div class="field mb-3">

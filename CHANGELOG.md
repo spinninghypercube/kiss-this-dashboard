@@ -22,5 +22,5 @@ The format is based on Keep a Changelog and this project uses semantic versionin
 - Tab theme preset manager with built-in presets plus save/load for per-tab custom presets
 
 ### Changed
-- New installs now start with `Default` + `Extra tab` starter tabs from `dashboard-default-config.json`
+- New installs now start with `Default` + `Extra tab` starter tabs from `startpage-default-config.json`
 - Group/button reorder arrow mini-actions were replaced with drag handles in the admin editor

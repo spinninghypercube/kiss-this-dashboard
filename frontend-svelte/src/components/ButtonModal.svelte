@@ -1,6 +1,6 @@
 <script>
   import { createEventDispatcher } from 'svelte';
-  import { DashboardCommon, readFileAsDataUrl } from '../lib/dashboard-common.js';
+  import { StartpageCommon, readFileAsDataUrl } from '../lib/startpage-common.js';
 
   export let open = false;
   export let isNew = false;
@@ -24,7 +24,7 @@
   let iconSource = 'selfhst';
   let searchQuery = '';
   let searchResults = [];
-  let searchStatus = 'Type to search an icon library and import an icon (stored locally in your dashboard config).';
+  let searchStatus = 'Type to search an icon library and import an icon (stored locally in your startpage config).';
   let searchStatusTone = 'muted';
   let searchLoading = false;
   let searchTimer = null;
@@ -47,7 +47,7 @@
     searchQuery = '';
     searchResults = [];
     searchStatusTone = 'muted';
-    searchStatus = 'Type to search an icon library and import an icon (stored locally in your dashboard config).';
+    searchStatus = 'Type to search an icon library and import an icon (stored locally in your startpage config).';
     searchLoading = false;
     searchSeq += 1;
     clearSearchTimer();
@@ -91,7 +91,7 @@
     searchStatusTone = 'muted';
     searchStatus = `Searching "${query}" in ${iconSearchSourceLabel(source)}...`;
     try {
-      const payload = await DashboardCommon.searchIcons(query, 18, source);
+      const payload = await StartpageCommon.searchIcons(query, 18, source);
       if (searchSeq !== seq) return;
       const resultSource = payload?.source || source;
       const items = Array.isArray(payload?.items)
@@ -122,8 +122,8 @@
     searchStatus = `Importing "${reference}" from ${iconSearchSourceLabel(source)}...`;
 
     const payload = isIconifySource(source)
-      ? await DashboardCommon.importIconifyIcon(reference, 'svg', source)
-      : await DashboardCommon.importSelfhstIcon(reference, 'svg');
+      ? await StartpageCommon.importIconifyIcon(reference, 'svg', source)
+      : await StartpageCommon.importSelfhstIcon(reference, 'svg');
 
     iconData = payload?.iconData || '';
     if (payload?.icon) {
@@ -291,7 +291,7 @@
                 <select id="entryIconSourceSelect" bind:value={iconSource} on:change={() => {
                   searchResults = [];
                   searchStatusTone = 'muted';
-                  searchStatus = `Selected ${iconSearchSourceLabel(iconSource)}. Type to search and import an icon (stored locally in your dashboard config).`;
+                  searchStatus = `Selected ${iconSearchSourceLabel(iconSource)}. Type to search and import an icon (stored locally in your startpage config).`;
                   if (searchQuery.trim().length >= 2) scheduleSearch(100);
                 }}>
                   <option value="selfhst">selfh.st/icons</option>
@@ -306,7 +306,7 @@
               <input id="entryIconSearchInput" class="input" type="search" maxlength="80" placeholder="Search service icon (e.g. grafana, proxmox, adguard)" bind:value={searchQuery} on:input={() => scheduleSearch(220)} />
             </div>
           </div>
-          <p class="help mt-2">Search a selected icon library and import a result. The selected icon is embedded locally in your dashboard config.</p>
+          <p class="help mt-2">Search a selected icon library and import a result. The selected icon is embedded locally in your startpage config.</p>
           <p id="entryIconSearchStatus" class={`help mt-2 ${searchStatusTone}`.trim()}>{searchStatus}</p>
           <div id="entryIconSearchResults" class="icon-search-results">
             {#if searchResults.length}

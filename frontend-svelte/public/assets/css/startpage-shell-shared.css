@@ -121,14 +121,14 @@
   background: transparent !important;
 }
 
-.dashboard-link-mode {
+.startpage-link-mode {
   gap: 0.18rem;
   padding: 0;
   border: none;
   background: transparent;
 }
 
-.mode-switch.dashboard-link-mode {
+.mode-switch.startpage-link-mode {
   padding: 0 !important;
   border: none !important;
   background: transparent !important;
@@ -144,19 +144,19 @@
   line-height: 1;
 }
 
-.dashboard-link-mode .ios-switch {
+.startpage-link-mode .ios-switch {
   width: 2.35rem;
   height: 1.35rem;
 }
 
-.dashboard-link-mode .ios-switch-slider::before {
+.startpage-link-mode .ios-switch-slider::before {
   width: 0.95rem;
   height: 0.95rem;
   left: 0.2rem;
   top: 0.2rem;
 }
 
-.dashboard-link-mode .ios-switch input:checked + .ios-switch-slider::before {
+.startpage-link-mode .ios-switch input:checked + .ios-switch-slider::before {
   transform: translateX(1rem);
 }
 

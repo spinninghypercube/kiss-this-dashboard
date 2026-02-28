@@ -75,23 +75,23 @@ export function applyThemeCssVars(theme) {
   const set = (k, v) => root.style.setProperty(k, v);
 
   // Dashboard vars
-  set('--dashboard-page-bg', t.backgroundColor);
-  set('--dashboard-group-bg', t.groupBackgroundColor);
-  set('--dashboard-group-border', t.groupBorderColor);
-  set('--dashboard-text-color', t.textColor);
-  set('--dashboard-button-text-color', t.buttonTextColor);
-  set('--dashboard-tab-bg', t.tabColor);
-  set('--dashboard-tab-hover-bg', t.tabHoverColor);
-  set('--dashboard-tab-text', t.tabTextColor);
-  set('--dashboard-tab-active-bg', t.activeTabColor);
-  set('--dashboard-tab-active-text', t.activeTabTextColor);
+  set('--startpage-page-bg', t.backgroundColor);
+  set('--startpage-group-bg', t.groupBackgroundColor);
+  set('--startpage-group-border', t.groupBorderColor);
+  set('--startpage-text-color', t.textColor);
+  set('--startpage-button-text-color', t.buttonTextColor);
+  set('--startpage-tab-bg', t.tabColor);
+  set('--startpage-tab-hover-bg', t.tabHoverColor);
+  set('--startpage-tab-text', t.tabTextColor);
+  set('--startpage-tab-active-bg', t.activeTabColor);
+  set('--startpage-tab-active-text', t.activeTabTextColor);
 
   // When page bg and group bg are identical, remove group box padding so content
   // aligns flush with the tab bar instead of being indented.
   const sameColor = t.backgroundColor.toLowerCase() === t.groupBackgroundColor.toLowerCase();
-  set('--dashboard-group-padding', sameColor ? '12px 0' : '24px');
-  set('--dashboard-group-inner-padding', sameColor ? '0' : '0.4rem');
-  set('--dashboard-group-title-inset', sameColor ? '0' : '0.75rem');
+  set('--startpage-group-padding', sameColor ? '12px 0' : '24px');
+  set('--startpage-group-inner-padding', sameColor ? '0' : '0.4rem');
+  set('--startpage-group-title-inset', sameColor ? '0' : '0.75rem');
 
   // Derive edit mode vars from dashboard colors
   const editVars = deriveEditModeColors(t);

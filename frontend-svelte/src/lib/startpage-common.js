@@ -1,5 +1,5 @@
-const LINK_MODE_KEY = "homelabDashboardLinkMode";
-const ACTIVE_DASHBOARD_KEY = "homelabDashboardActiveDashboard";
+const LINK_MODE_KEY = "homelabStartpageLinkMode";
+const ACTIVE_STARTPAGE_KEY = "homelabStartpageActiveDashboard";
 const BUTTON_COLOR_MODE_CYCLE_DEFAULT = "cycle-default";
 const BUTTON_COLOR_MODE_CYCLE_CUSTOM = "cycle-custom";
 const BUTTON_COLOR_MODE_SOLID_ALL = "solid-all";
@@ -32,11 +32,11 @@ function normalizeLinkMode(mode) {
 
 function normalizeTitle(value) {
   if (typeof value !== "string") {
-    return "KISS this dashboard";
+    return "KISS Startpage";
   }
 
   const trimmed = value.trim();
-  return trimmed || "KISS this dashboard";
+  return trimmed || "KISS Startpage";
 }
 
 export function normalizeHexColor(value) {
@@ -534,11 +534,11 @@ function normalizeDashboards(config, migrationTabs) {
     normalizeDashboard(
       {
         id: "dashboard-1",
-        label: "Dashboard 1",
+        label: "Startpage 1",
         groups: legacyGroups
       },
       migrationTabs,
-      "Dashboard 1"
+      "Startpage 1"
     )
   ];
 }
@@ -639,7 +639,7 @@ async function requestJSON(path, options = {}) {
 }
 
 async function fetchDefaultConfig() {
-  const response = await fetch("/dashboard-default-config.json", {
+  const response = await fetch("/startpage-default-config.json", {
     method: "GET",
     cache: "no-store"
   });
@@ -751,16 +751,16 @@ function setLinkMode(mode) {
   localStorage.setItem(LINK_MODE_KEY, normalizeLinkMode(mode));
 }
 
-function getActiveDashboardId() {
-  return localStorage.getItem(ACTIVE_DASHBOARD_KEY) || "";
+function getActiveStartpageId() {
+  return localStorage.getItem(ACTIVE_STARTPAGE_KEY) || "";
 }
 
-function setActiveDashboardId(dashboardId) {
+function setActiveStartpageId(dashboardId) {
   if (!dashboardId) {
-    localStorage.removeItem(ACTIVE_DASHBOARD_KEY);
+    localStorage.removeItem(ACTIVE_STARTPAGE_KEY);
     return;
   }
-  localStorage.setItem(ACTIVE_DASHBOARD_KEY, dashboardId);
+  localStorage.setItem(ACTIVE_STARTPAGE_KEY, dashboardId);
 }
 
 async function fetchVersion() {
@@ -772,7 +772,7 @@ async function fetchVersion() {
   }
 }
 
-export const DashboardCommon = {
+export const StartpageCommon = {
   clone,
   createId,
   makeSafeTabId,
@@ -796,8 +796,8 @@ export const DashboardCommon = {
   importIconifyIcon,
   getLinkMode,
   setLinkMode,
-  getActiveDashboardId,
-  setActiveDashboardId,
+  getActiveStartpageId,
+  setActiveStartpageId,
   fetchVersion
 };
 
@@ -844,4 +844,4 @@ export function ensureArray(value) {
   return Array.isArray(value) ? value : [];
 }
 
-export default DashboardCommon;
+export default StartpageCommon;

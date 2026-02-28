@@ -2,9 +2,9 @@
 set -euo pipefail
 
 BACKUP_FILE=""
-DATA_DIR="/var/lib/kiss-this-dashboard"
+DATA_DIR="/var/lib/kiss-startpage"
 RESTART_SERVICE=0
-SERVICE_NAME="kiss-this-dashboard-api"
+SERVICE_NAME="kiss-startpage-api"
 
 usage() {
   cat <<USAGE

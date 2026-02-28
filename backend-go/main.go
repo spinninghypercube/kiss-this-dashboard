@@ -126,7 +126,7 @@ func main() {
 		ReadHeaderTimeout: 10 * time.Second,
 	}
 
-	log.Printf("KISS this dashboard v%s — listening on http://%s", appVersion, addr)
+	log.Printf("KISS Startpage v%s — listening on http://%s", appVersion, addr)
 	if err := server.ListenAndServe(); err != nil && !errors.Is(err, http.ErrServerClosed) {
 		log.Fatalf("server error: %v", err)
 	}
@@ -138,7 +138,7 @@ func loadEnv() envConfig {
 	if defaultAppRoot == "." || defaultAppRoot == "/" {
 		defaultAppRoot = cwdOrFallback()
 	}
-	dataDir := getenv("DASH_DATA_DIR", "/srv/www/kiss-this-dashboard/shared/data")
+	dataDir := getenv("DASH_DATA_DIR", "/srv/www/kiss-startpage/shared/data")
 	privateIconsDir := getenv("DASH_PRIVATE_ICONS_DIR", filepath.Join(filepath.Dir(dataDir), "private-icons"))
 	appRoot := getenv("DASH_APP_ROOT", defaultAppRoot)
 	return envConfig{
@@ -148,7 +148,7 @@ func loadEnv() envConfig {
 		PrivateIconsDir:    privateIconsDir,
 		ConfigFile:         filepath.Join(dataDir, "dashboard-config.json"),
 		UsersFile:          filepath.Join(dataDir, "users.json"),
-		DefaultConfigPath:  getenv("DASH_DEFAULT_CONFIG", "/srv/www/kiss-this-dashboard/current/dashboard-default-config.json"),
+		DefaultConfigPath:  getenv("DASH_DEFAULT_CONFIG", "/srv/www/kiss-startpage/current/startpage-default-config.json"),
 		AppRoot:            appRoot,
 		SessionTTLSeconds:  getenvInt("DASH_SESSION_TTL", defaultSessionTTL),
 		SessionCookieName:  sessionCookieNameDefault,
@@ -200,11 +200,11 @@ func (a *app) ensureFilesReady() error {
 		cfg, ok := readJSONAny(a.cfg.DefaultConfigPath)
 		if !ok {
 			cfg = map[string]any{
-				"title": "KISS this dashboard",
+				"title": "KISS Startpage",
 				"dashboards": []any{
 					map[string]any{
 						"id":     "dashboard-1",
-						"label":  "Dashboard 1",
+						"label":  "Startpage 1",
 						"groups": []any{},
 					},
 				},
@@ -260,7 +260,7 @@ func normalizeConfig(v any) map[string]any {
 	m, ok := v.(map[string]any)
 	if !ok {
 		return map[string]any{
-			"title":       "KISS this dashboard",
+			"title":       "KISS Startpage",
 			"themePresets": []any{},
 			"dashboards":  []any{},
 		}
@@ -271,7 +271,7 @@ func normalizeConfig(v any) map[string]any {
 	}
 	title := strings.TrimSpace(asString(out["title"]))
 	if title == "" {
-		title = "KISS this dashboard"
+		title = "KISS Startpage"
 	}
 	out["title"] = title
 	if _, ok := out["themePresets"].([]any); !ok {
@@ -1098,7 +1098,7 @@ func (a *app) httpGet(target string, timeout time.Duration) (*http.Response, err
 	if err != nil {
 		return nil, err
 	}
-	req.Header.Set("User-Agent", "kiss-this-dashboard-go/0.1 (+selfhst-icons)")
+	req.Header.Set("User-Agent", "kiss-startpage-go/0.1 (+selfhst-icons)")
 	req.Header.Set("Accept", "application/json, image/svg+xml, image/png;q=0.9, */*;q=0.8")
 	client := *a.client
 	client.Timeout = timeout

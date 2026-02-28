@@ -1,12 +1,12 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-REPO_URL="https://github.com/spinninghypercube/kiss-this-dashboard.git"
+REPO_URL="https://github.com/spinninghypercube/kiss-startpage.git"
 BRANCH="main"
 PORT="8788"
 BIND_ADDR="0.0.0.0"
-INSTALL_DIR="/opt/kiss-this-dashboard"
-DATA_DIR="/var/lib/kiss-this-dashboard"
+INSTALL_DIR="/opt/kiss-startpage"
+DATA_DIR="/var/lib/kiss-startpage"
 GO_MIN_VERSION="1.24.0"
 NODE_MIN_MAJOR="18"
 NODE_FALLBACK_MAJOR="20"
@@ -21,8 +21,8 @@ Usage: curl -fsSL <this script> | sudo bash [-s -- [options]]
 Options:
   --port PORT             App port (default: 8788)
   --bind ADDR             App bind address (default: 0.0.0.0; use 127.0.0.1 for same-host reverse proxy)
-  --install-dir DIR       Install root for app files (default: /opt/kiss-this-dashboard)
-  --data-dir DIR          Persistent data dir (default: /var/lib/kiss-this-dashboard)
+  --install-dir DIR       Install root for app files (default: /opt/kiss-startpage)
+  --data-dir DIR          Persistent data dir (default: /var/lib/kiss-startpage)
   --branch NAME           Git branch or tag to install (default: main)
   --repo URL              Git repo URL (default: upstream GitHub repo)
   -h, --help              Show this help
@@ -172,7 +172,7 @@ print_urls() {
 }
 
 apply_bind_override_if_needed() {
-  local env_file="/etc/default/kiss-this-dashboard-api"
+  local env_file="/etc/default/kiss-startpage-api"
   if [[ ! -f "$env_file" ]]; then
     return
   fi
@@ -182,7 +182,7 @@ apply_bind_override_if_needed() {
     printf '\nDASH_BIND=%s\n' "$BIND_ADDR" >> "$env_file"
   fi
   if command -v systemctl >/dev/null 2>&1 && [[ -d /run/systemd/system ]]; then
-    systemctl restart kiss-this-dashboard-api || true
+    systemctl restart kiss-startpage-api || true
   fi
 }
 
@@ -201,7 +201,7 @@ echo "[bootstrap] Bind address: ${BIND_ADDR}"
 
 tmp_root="$(mktemp -d)"
 trap 'rm -rf "$tmp_root"' EXIT
-repo_dir="$tmp_root/kiss-this-dashboard"
+repo_dir="$tmp_root/kiss-startpage"
 
 echo "[bootstrap] Cloning ${REPO_URL} (${BRANCH})"
 git clone --depth 1 --branch "$BRANCH" "$REPO_URL" "$repo_dir"

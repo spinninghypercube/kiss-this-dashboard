@@ -1,4 +1,4 @@
-# KISS this dashboard
+# KISS Startpage
 
 Your homelab start page, built in the browser.
 
@@ -18,16 +18,16 @@ Your homelab start page, built in the browser.
 
 ### Windows
 
-[Download Windows installer (.exe)](https://github.com/spinninghypercube/kiss-this-dashboard/releases/download/windows-installer-latest/kiss-this-dashboard-bootstrap.exe)
+[Download Windows installer (.exe)](https://github.com/spinninghypercube/kiss-startpage/releases/download/windows-installer-latest/kiss-startpage-bootstrap.exe)
 
 - Run as Administrator.
 - Opens on `http://<your-server-ip>:8788`.
-- EXE assets include versioned files like `kiss-this-dashboard-bootstrap-v2.1.1.exe` plus stable `kiss-this-dashboard-bootstrap.exe`.
+- EXE assets include versioned files like `kiss-startpage-bootstrap-v2.1.1.exe` plus stable `kiss-startpage-bootstrap.exe`.
 
 Optional PowerShell one-shot:
 
 ```powershell
-powershell -NoProfile -ExecutionPolicy Bypass -Command "irm https://raw.githubusercontent.com/spinninghypercube/kiss-this-dashboard/main/ops/bootstrap-windows.ps1 | iex"
+powershell -NoProfile -ExecutionPolicy Bypass -Command "irm https://raw.githubusercontent.com/spinninghypercube/kiss-startpage/main/ops/bootstrap-windows.ps1 | iex"
 ```
 
 ### Linux (One-shot)
@@ -35,13 +35,13 @@ powershell -NoProfile -ExecutionPolicy Bypass -Command "irm https://raw.githubus
 Docker:
 
 ```bash
-curl -fsSL https://raw.githubusercontent.com/spinninghypercube/kiss-this-dashboard/main/ops/bootstrap-docker.sh | bash
+curl -fsSL https://raw.githubusercontent.com/spinninghypercube/kiss-startpage/main/ops/bootstrap-docker.sh | bash
 ```
 
 Debian/Ubuntu systemd:
 
 ```bash
-curl -fsSL https://raw.githubusercontent.com/spinninghypercube/kiss-this-dashboard/main/ops/bootstrap.sh | sudo bash
+curl -fsSL https://raw.githubusercontent.com/spinninghypercube/kiss-startpage/main/ops/bootstrap.sh | sudo bash
 ```
 
 ## Installer Options
@@ -56,40 +56,40 @@ curl -fsSL https://raw.githubusercontent.com/spinninghypercube/kiss-this-dashboa
 
 Windows EXE (default install/update):
 
-- Download and run: `kiss-this-dashboard-bootstrap.exe` as Administrator
+- Download and run: `kiss-startpage-bootstrap.exe` as Administrator
 
 Windows PowerShell (default install):
 
 ```powershell
-powershell -NoProfile -ExecutionPolicy Bypass -Command "irm https://raw.githubusercontent.com/spinninghypercube/kiss-this-dashboard/main/ops/bootstrap-windows.ps1 | iex"
+powershell -NoProfile -ExecutionPolicy Bypass -Command "irm https://raw.githubusercontent.com/spinninghypercube/kiss-startpage/main/ops/bootstrap-windows.ps1 | iex"
 ```
 
 Linux Debian/Ubuntu systemd (default install):
 
 ```bash
-curl -fsSL https://raw.githubusercontent.com/spinninghypercube/kiss-this-dashboard/main/ops/bootstrap.sh | sudo bash
+curl -fsSL https://raw.githubusercontent.com/spinninghypercube/kiss-startpage/main/ops/bootstrap.sh | sudo bash
 ```
 
 Linux Debian/Ubuntu systemd (local reverse proxy on same host):
 
 ```bash
-curl -fsSL https://raw.githubusercontent.com/spinninghypercube/kiss-this-dashboard/main/ops/bootstrap.sh | sudo bash -s -- --bind 127.0.0.1
+curl -fsSL https://raw.githubusercontent.com/spinninghypercube/kiss-startpage/main/ops/bootstrap.sh | sudo bash -s -- --bind 127.0.0.1
 ```
 
 Linux Docker (default install):
 
 ```bash
-curl -fsSL https://raw.githubusercontent.com/spinninghypercube/kiss-this-dashboard/main/ops/bootstrap-docker.sh | bash
+curl -fsSL https://raw.githubusercontent.com/spinninghypercube/kiss-startpage/main/ops/bootstrap-docker.sh | bash
 ```
 
 ## Updating
 
 Update by rerunning the installer you used initially:
 
-- Linux systemd: `curl -fsSL https://raw.githubusercontent.com/spinninghypercube/kiss-this-dashboard/main/ops/bootstrap.sh | sudo bash`
-- Linux Docker: `curl -fsSL https://raw.githubusercontent.com/spinninghypercube/kiss-this-dashboard/main/ops/bootstrap-docker.sh | bash`
-- Windows PowerShell: `powershell -NoProfile -ExecutionPolicy Bypass -Command "irm https://raw.githubusercontent.com/spinninghypercube/kiss-this-dashboard/main/ops/bootstrap-windows.ps1 | iex"`
-- Windows EXE: rerun `kiss-this-dashboard-bootstrap.exe` as Administrator
+- Linux systemd: `curl -fsSL https://raw.githubusercontent.com/spinninghypercube/kiss-startpage/main/ops/bootstrap.sh | sudo bash`
+- Linux Docker: `curl -fsSL https://raw.githubusercontent.com/spinninghypercube/kiss-startpage/main/ops/bootstrap-docker.sh | bash`
+- Windows PowerShell: `powershell -NoProfile -ExecutionPolicy Bypass -Command "irm https://raw.githubusercontent.com/spinninghypercube/kiss-startpage/main/ops/bootstrap-windows.ps1 | iex"`
+- Windows EXE: rerun `kiss-startpage-bootstrap.exe` as Administrator
 
 Backup and restore (Linux/systemd installs):
 
@@ -116,9 +116,9 @@ Windows EXE update notes:
 
 ## Where Things Live
 
-- Linux systemd: app `/opt/kiss-this-dashboard/current`, data `/var/lib/kiss-this-dashboard`
+- Linux systemd: app `/opt/kiss-startpage/current`, data `/var/lib/kiss-startpage`
 - Linux Docker: persistent data in `dashboard_data` volume
-- Windows: app/data under `C:\ProgramData\KissThisDashboard` by default
+- Windows: app/data under `C:\ProgramData\KissStartpage` by default
 
 ## Repo Layout
 

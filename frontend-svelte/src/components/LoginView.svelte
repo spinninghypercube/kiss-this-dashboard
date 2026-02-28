@@ -1,6 +1,6 @@
 <script>
   import { createEventDispatcher } from 'svelte';
-  import { DashboardCommon } from '../lib/dashboard-common.js';
+  import { StartpageCommon } from '../lib/startpage-common.js';
 
   export let authSetupRequired = false;
   export let showMessage = () => {};
@@ -23,7 +23,7 @@
       return;
     }
     try {
-      const result = await DashboardCommon.login(username, password);
+      const result = await StartpageCommon.login(username, password);
       loginPassword = '';
       dispatch('loginsuccess', {
         user: result?.username || username,
@@ -58,7 +58,7 @@
       return;
     }
     try {
-      const result = await DashboardCommon.bootstrapAdmin(username, password);
+      const result = await StartpageCommon.bootstrapAdmin(username, password);
       bootstrapPassword = '';
       bootstrapConfirmPassword = '';
       dispatch('loginsuccess', {
@@ -80,9 +80,9 @@
 </script>
 
 <div id="loginView" class="box login-box">
-  <h1 id="loginViewTitle" class="title is-4 mb-2">{authSetupRequired ? 'First-Time Setup' : 'KISS this dashboard Admin'}</h1>
+  <h1 id="loginViewTitle" class="title is-4 mb-2">{authSetupRequired ? 'First-Time Setup' : 'KISS Startpage Admin'}</h1>
   <p id="loginViewIntro" class="muted mb-4">
-    {authSetupRequired ? 'Create the first admin account for KISS this dashboard.' : 'Log in to manage your dashboard.'}
+    {authSetupRequired ? 'Create the first admin account for KISS Startpage.' : 'Log in to manage your startpage.'}
   </p>
 
   <form id="loginForm" class:is-hidden={authSetupRequired} on:submit={loginSubmit}>

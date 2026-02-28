@@ -2,11 +2,11 @@
 set -euo pipefail
 
 ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
-INSTALL_DIR="/opt/kiss-this-dashboard"
-DATA_DIR="/var/lib/kiss-this-dashboard"
-SERVICE_NAME="kiss-this-dashboard-api"
-SERVICE_USER="kiss-this-dashboard"
-SERVICE_GROUP="kiss-this-dashboard"
+INSTALL_DIR="/opt/kiss-startpage"
+DATA_DIR="/var/lib/kiss-startpage"
+SERVICE_NAME="kiss-startpage-api"
+SERVICE_USER="kiss-startpage"
+SERVICE_GROUP="kiss-startpage"
 BIND_ADDR="0.0.0.0"
 PORT="8788"
 ENABLE_SERVICE=1
@@ -17,11 +17,11 @@ usage() {
 Usage: sudo $0 [options]
 
 Options:
-  --install-dir DIR      Install root (default: /opt/kiss-this-dashboard)
-  --data-dir DIR         Persistent data dir (default: /var/lib/kiss-this-dashboard)
-  --service-name NAME    systemd service name (default: kiss-this-dashboard-api)
-  --user USER            Service user (default: kiss-this-dashboard)
-  --group GROUP          Service group (default: kiss-this-dashboard)
+  --install-dir DIR      Install root (default: /opt/kiss-startpage)
+  --data-dir DIR         Persistent data dir (default: /var/lib/kiss-startpage)
+  --service-name NAME    systemd service name (default: kiss-startpage-api)
+  --user USER            Service user (default: kiss-startpage)
+  --group GROUP          Service group (default: kiss-startpage)
   --bind ADDR            Bind address (default: 0.0.0.0)
   --port PORT            Port (default: 8788)
   --no-enable            Do not enable/start the service
@@ -139,12 +139,12 @@ chmod 750 "$PRIVATE_ICONS_DIR"
 
 if [[ ! -f "$ENV_FILE" ]]; then
   cat > "$ENV_FILE" <<ENV
-# KISS this dashboard runtime settings
+# KISS Startpage runtime settings
 DASH_BIND=${BIND_ADDR}
 DASH_PORT=${PORT}
 DASH_DATA_DIR=${DATA_DIR}
 DASH_PRIVATE_ICONS_DIR=${PRIVATE_ICONS_DIR}
-DASH_DEFAULT_CONFIG=${CURRENT_DIR}/dashboard-default-config.json
+DASH_DEFAULT_CONFIG=${CURRENT_DIR}/startpage-default-config.json
 DASH_APP_ROOT=${CURRENT_DIR}/frontend-svelte/dist
 # DASH_SESSION_TTL=43200
 # DASH_ICON_INDEX_TTL=21600
@@ -155,7 +155,7 @@ fi
 
 cat > "$UNIT_FILE" <<UNIT
 [Unit]
-Description=KISS this dashboard API
+Description=KISS Startpage API
 After=network.target
 
 [Service]
@@ -164,7 +164,7 @@ User=${SERVICE_USER}
 Group=${SERVICE_GROUP}
 WorkingDirectory=${CURRENT_DIR}
 EnvironmentFile=-${ENV_FILE}
-Environment=DASH_DEFAULT_CONFIG=${CURRENT_DIR}/dashboard-default-config.json
+Environment=DASH_DEFAULT_CONFIG=${CURRENT_DIR}/startpage-default-config.json
 Environment=DASH_APP_ROOT=${CURRENT_DIR}/frontend-svelte/dist
 Environment=DASH_PRIVATE_ICONS_DIR=${PRIVATE_ICONS_DIR}
 ExecStart=${CURRENT_DIR}/backend-go/kissdash-go

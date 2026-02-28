@@ -4,7 +4,7 @@ import {
   isHexColorDark,
   blendHexColors,
   DEFAULT_THEME
-} from './dashboard-common.js';
+} from './startpage-common.js';
 
 function pickHighContrastColor(value) {
   return isHexColorDark(value) ? '#f8fafc' : '#0f172a';
@@ -29,13 +29,13 @@ function applyNavActionTabContrastTheme(surfaceColor, root) {
   const targetRoot = root || document.documentElement;
   const navBg = pickHighContrastColor(surfaceColor);
   const navText = pickHighContrastColor(navBg);
-  setCssVariable(targetRoot, '--dashboard-nav-tab-bg', navBg);
-  setCssVariable(targetRoot, '--dashboard-nav-tab-text', navText);
-  setCssVariable(targetRoot, '--dashboard-nav-tab-hover-bg', hexColorToRgba(navBg, 0.86));
-  setCssVariable(targetRoot, '--dashboard-nav-tab-hover-text', navText);
+  setCssVariable(targetRoot, '--startpage-nav-tab-bg', navBg);
+  setCssVariable(targetRoot, '--startpage-nav-tab-text', navText);
+  setCssVariable(targetRoot, '--startpage-nav-tab-hover-bg', hexColorToRgba(navBg, 0.86));
+  setCssVariable(targetRoot, '--startpage-nav-tab-hover-text', navText);
 }
 
-function applyDashboardThemeCssVariables(themeLike, options) {
+function applyStartpageThemeCssVariables(themeLike, options) {
   const opts = options || {};
   const root = opts.root || document.documentElement;
   const pageColor = normalizeHexColor(themeLike && themeLike.backgroundColor);
@@ -59,39 +59,39 @@ function applyDashboardThemeCssVariables(themeLike, options) {
 
   applyNavActionTabContrastTheme(navSurfaceColor, root);
 
-  setCssVariable(root, '--dashboard-page-bg', pageColor);
-  setCssVariable(root, '--dashboard-group-bg', groupColor);
-  setCssVariable(root, '--dashboard-text-color', textColor);
-  setCssVariable(root, '--dashboard-button-text-color', buttonTextColor);
+  setCssVariable(root, '--startpage-page-bg', pageColor);
+  setCssVariable(root, '--startpage-group-bg', groupColor);
+  setCssVariable(root, '--startpage-text-color', textColor);
+  setCssVariable(root, '--startpage-button-text-color', buttonTextColor);
 
   if (groupColor && opts.setGroupRadius !== false) {
-    setCssVariable(root, '--dashboard-group-radius', opts.groupRadius || '0.85rem');
+    setCssVariable(root, '--startpage-group-radius', opts.groupRadius || '0.85rem');
   } else if (opts.setGroupRadius !== false) {
-    setCssVariable(root, '--dashboard-group-radius', '');
+    setCssVariable(root, '--startpage-group-radius', '');
   }
 
   if (tabColor) {
-    setCssVariable(root, '--dashboard-tab-bg', tabColor);
-    setCssVariable(root, '--dashboard-tab-hover-bg', tabColor);
+    setCssVariable(root, '--startpage-tab-bg', tabColor);
+    setCssVariable(root, '--startpage-tab-hover-bg', tabColor);
   } else {
-    setCssVariable(root, '--dashboard-tab-bg', '');
-    setCssVariable(root, '--dashboard-tab-hover-bg', '');
+    setCssVariable(root, '--startpage-tab-bg', '');
+    setCssVariable(root, '--startpage-tab-hover-bg', '');
   }
 
-  setCssVariable(root, '--dashboard-tab-active-bg', activeTabColor);
+  setCssVariable(root, '--startpage-tab-active-bg', activeTabColor);
 
   if (tabTextColor) {
-    setCssVariable(root, '--dashboard-tab-text', tabTextColor);
-    setCssVariable(root, '--dashboard-tab-hover-text', tabTextColor);
+    setCssVariable(root, '--startpage-tab-text', tabTextColor);
+    setCssVariable(root, '--startpage-tab-hover-text', tabTextColor);
   } else {
-    setCssVariable(root, '--dashboard-tab-text', '');
-    setCssVariable(root, '--dashboard-tab-hover-text', '');
+    setCssVariable(root, '--startpage-tab-text', '');
+    setCssVariable(root, '--startpage-tab-hover-text', '');
   }
 
-  setCssVariable(root, '--dashboard-tab-active-text', activeTabTextColor);
-  setCssVariable(root, '--dashboard-switch-track-bg', groupSurfaceColor);
-  setCssVariable(root, '--dashboard-switch-track-border', hexColorToRgba(switchKnobColor, 0.22));
-  setCssVariable(root, '--dashboard-switch-knob-bg', switchKnobColor);
+  setCssVariable(root, '--startpage-tab-active-text', activeTabTextColor);
+  setCssVariable(root, '--startpage-switch-track-bg', groupSurfaceColor);
+  setCssVariable(root, '--startpage-switch-track-border', hexColorToRgba(switchKnobColor, 0.22));
+  setCssVariable(root, '--startpage-switch-knob-bg', switchKnobColor);
 
   return {
     pageColor: pageSurfaceColor,
@@ -116,7 +116,7 @@ export function applyAdminThemePreview(themeLike, defaults) {
   const dashboardSurfaceColor = dashboardColor || def.backgroundColor;
   const groupSurfaceColor = groupColor || def.groupBackgroundColor;
 
-  applyDashboardThemeCssVariables(
+  applyStartpageThemeCssVariables(
     { backgroundColor: dashboardColor, groupBackgroundColor: groupColor, textColor: pageTextColor,
       buttonTextColor, tabColor, activeTabColor, tabTextColor, activeTabTextColor },
     { flatClassName: 'admin-group-shell-flat', setGroupRadius: false,
@@ -155,13 +155,13 @@ export function applyAdminThemePreview(themeLike, defaults) {
   root.style.setProperty('--admin-modal-border', hexColorToRgba(surfaceText, 0.22));
 }
 
-export const DashboardUI = {
+export const StartpageUI = {
   normalizeHexColor,
   hexColorToRgb,
   pickHighContrastColor,
   hexColorToRgba,
   applyNavActionTabContrastTheme,
-  applyDashboardThemeCssVariables
+  applyStartpageThemeCssVariables
 };
 
-export default DashboardUI;
+export default StartpageUI;

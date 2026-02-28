@@ -2,11 +2,11 @@
 param(
     [int]$Port = 8788,
     [string]$Bind = "0.0.0.0",
-    [string]$InstallRoot = "$env:ProgramData\KissThisDashboard",
+    [string]$InstallRoot = "$env:ProgramData\KissStartpage",
     [string]$DataDir = "",
     [string]$Branch = "main",
-    [string]$RepoUrl = "https://github.com/spinninghypercube/kiss-this-dashboard.git",
-    [string]$ServiceName = "kiss-this-dashboard-api",
+    [string]$RepoUrl = "https://github.com/spinninghypercube/kiss-startpage.git",
+    [string]$ServiceName = "kiss-startpage-api",
     [switch]$SkipDependencyInstall,
     [switch]$NoService
 )
@@ -170,8 +170,8 @@ $frontendDir = Join-Path $appDir "frontend-svelte"
 $backendDir = Join-Path $appDir "backend-go"
 $backendExe = Join-Path $backendDir "kissdash-go.exe"
 $appRoot = Join-Path $frontendDir "dist"
-$defaultConfig = Join-Path $appDir "dashboard-default-config.json"
-$launcherPath = Join-Path $resolvedInstallRoot "run-kiss-this-dashboard.cmd"
+$defaultConfig = Join-Path $appDir "startpage-default-config.json"
+$launcherPath = Join-Path $resolvedInstallRoot "run-kiss-startpage.cmd"
 
 Write-Step "Preparing install directories"
 New-Item -ItemType Directory -Path $resolvedInstallRoot -Force | Out-Null
@@ -229,7 +229,7 @@ cd /d "$backendDir"
 Set-Content -Path $launcherPath -Value $launcherContent -Encoding Ascii
 
 if (-not (Test-PathIsLocalhost -Address $Bind)) {
-    $ruleName = "KISS this dashboard ($Port)"
+    $ruleName = "KISS Startpage ($Port)"
     $existingRule = Get-NetFirewallRule -DisplayName $ruleName -ErrorAction SilentlyContinue
     if ($null -eq $existingRule) {
         Write-Step "Creating firewall rule for TCP port $Port"
@@ -264,8 +264,8 @@ else {
 Invoke-External -FilePath "nssm" -Arguments @("set", $ServiceName, "Application", $cmdExe) -FailureMessage "nssm set Application failed"
 Invoke-External -FilePath "nssm" -Arguments @("set", $ServiceName, "AppParameters", $appParameters) -FailureMessage "nssm set AppParameters failed"
 Invoke-External -FilePath "nssm" -Arguments @("set", $ServiceName, "AppDirectory", $backendDir) -FailureMessage "nssm set AppDirectory failed"
-Invoke-External -FilePath "nssm" -Arguments @("set", $ServiceName, "DisplayName", "KISS this dashboard API") -FailureMessage "nssm set DisplayName failed"
-Invoke-External -FilePath "nssm" -Arguments @("set", $ServiceName, "Description", "KISS this dashboard web service") -FailureMessage "nssm set Description failed"
+Invoke-External -FilePath "nssm" -Arguments @("set", $ServiceName, "DisplayName", "KISS Startpage API") -FailureMessage "nssm set DisplayName failed"
+Invoke-External -FilePath "nssm" -Arguments @("set", $ServiceName, "Description", "KISS Startpage web service") -FailureMessage "nssm set Description failed"
 Invoke-External -FilePath "nssm" -Arguments @("set", $ServiceName, "Start", "SERVICE_AUTO_START") -FailureMessage "nssm set Start failed"
 
 Write-Step "Starting service"

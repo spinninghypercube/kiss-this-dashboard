@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-REPO_URL="https://github.com/spinninghypercube/kiss-this-dashboard.git"
+REPO_URL="https://github.com/spinninghypercube/kiss-startpage.git"
 BRANCH="main"
 PORT="8788"
 INSTALL_DIR=""
@@ -15,7 +15,7 @@ Usage: curl -fsSL <this script> | bash [-s -- [options]]
 
 Options:
   --port PORT           Host port to expose (default: 8788)
-  --dir DIR             Clone/install directory (default: /opt/kiss-this-dashboard-docker if root, otherwise ~/kiss-this-dashboard-docker)
+  --dir DIR             Clone/install directory (default: /opt/kiss-startpage-docker if root, otherwise ~/kiss-startpage-docker)
   --branch NAME         Git branch or tag to install (default: main)
   --repo URL            Git repo URL (default: upstream GitHub repo)
   -h, --help            Show this help
@@ -35,9 +35,9 @@ done
 
 if [[ -z "$INSTALL_DIR" ]]; then
   if [[ "${EUID}" -eq 0 ]]; then
-    INSTALL_DIR="/opt/kiss-this-dashboard-docker"
+    INSTALL_DIR="/opt/kiss-startpage-docker"
   else
-    INSTALL_DIR="${HOME}/kiss-this-dashboard-docker"
+    INSTALL_DIR="${HOME}/kiss-startpage-docker"
   fi
 fi
 

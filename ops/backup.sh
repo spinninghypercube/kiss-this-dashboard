@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-DATA_DIR="/var/lib/kiss-this-dashboard"
+DATA_DIR="/var/lib/kiss-startpage"
 OUT_DIR="./backups"
 
 usage() {
@@ -26,7 +26,7 @@ done
 
 mkdir -p "$OUT_DIR"
 STAMP="$(date +%Y%m%d-%H%M%S)"
-ARCHIVE="$OUT_DIR/kiss-this-dashboard-backup-${STAMP}.tar.gz"
+ARCHIVE="$OUT_DIR/kiss-startpage-backup-${STAMP}.tar.gz"
 TMP_DIR="$(mktemp -d)"
 trap 'rm -rf "$TMP_DIR"' EXIT
 

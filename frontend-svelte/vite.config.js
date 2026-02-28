@@ -10,7 +10,7 @@ export default defineConfig({
       '/api': 'http://127.0.0.1:8788',
       '/icons': 'http://127.0.0.1:8788',
       '/health': 'http://127.0.0.1:8788',
-      '/dashboard-default-config.json': 'http://127.0.0.1:8788'
+      '/startpage-default-config.json': 'http://127.0.0.1:8788'
     }
   }
 });

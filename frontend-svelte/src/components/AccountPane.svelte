@@ -1,6 +1,6 @@
 <script>
   import { createEventDispatcher } from 'svelte';
-  import { DashboardCommon } from '../lib/dashboard-common.js';
+  import { StartpageCommon } from '../lib/startpage-common.js';
 
   export let open = false;
   export let authUser = '';
@@ -36,7 +36,7 @@
       return;
     }
     try {
-      const result = await DashboardCommon.changeUsername(usernameCurrentPassword, requestedUsername);
+      const result = await StartpageCommon.changeUsername(usernameCurrentPassword, requestedUsername);
       usernameNew = '';
       usernameCurrentPassword = '';
       dispatch('usernamechanged', { user: result?.username || requestedUsername });
@@ -62,7 +62,7 @@
       return;
     }
     try {
-      const result = await DashboardCommon.changePassword(passwordCurrent, passwordNew);
+      const result = await StartpageCommon.changePassword(passwordCurrent, passwordNew);
       passwordCurrent = '';
       passwordNew = '';
       passwordConfirm = '';
