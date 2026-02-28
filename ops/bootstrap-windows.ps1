@@ -187,8 +187,8 @@ try {
     Write-Step "Building frontend"
     Push-Location $frontendDir
     try {
-        Invoke-External -FilePath "npm.cmd" -Arguments @("ci")       -FailureMessage "npm ci failed"
-        Invoke-External -FilePath "npm.cmd" -Arguments @("run", "build") -FailureMessage "npm build failed"
+        Invoke-External -FilePath "npm.cmd" -Arguments @("ci")       -FailureMessage "npm ci failed" -SuppressStderr
+        Invoke-External -FilePath "npm.cmd" -Arguments @("run", "build") -FailureMessage "npm build failed" -SuppressStderr
     }
     finally { Pop-Location }
 
@@ -351,7 +351,6 @@ Write-Host 'KISS Startpage uninstalled.'
         Write-Host "Install complete."
         Write-Host "App version:  $appVersion"
         Write-Host "Open:         http://${ip}:$Port/"
-        Write-Host "Edit:         http://${ip}:$Port/edit"
         Write-Host "Service:      $ServiceName"
         if ($NoAutoStart) { Write-Host "Auto-start:   disabled (start manually: Start-Service $ServiceName)" }
         Write-Host "Install root: $resolvedInstallRoot"
