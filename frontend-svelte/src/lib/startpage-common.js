@@ -596,7 +596,7 @@ function normalizeConfig(inputConfig) {
     title: normalizeTitle(config.title),
     theme,
     themePresets,
-    tabs
+    dashboards: tabs
   };
 }
 
