@@ -149,7 +149,8 @@ try {
             }
         }
         Start-Process -FilePath $exePath -ArgumentList ($argParts -join " ") -Verb RunAs
-        exit
+        $selfElevating = $true
+        return
     }
 
     Refresh-Path
@@ -436,7 +437,9 @@ Write-Host 'Press any key to close...' -NoNewline
     Write-Host "INSTALL FAILED: $_" -ForegroundColor Red
     Write-Host ""
 } finally {
-    Write-Host ""
-    Write-Host "Press any key to close..." -NoNewline
-    $null = [Console]::ReadKey($true)
+    if (-not $selfElevating) {
+        Write-Host ""
+        Write-Host "Press any key to close..." -NoNewline
+        $null = [Console]::ReadKey($true)
+    }
 }
